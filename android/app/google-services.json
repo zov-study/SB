@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "505695539977",
+    "firebase_url": "https://smart-brands-nz.firebaseio.com",
+    "project_id": "smart-brands-nz",
+    "storage_bucket": "smart-brands-nz.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:505695539977:android:a618baf9e043ce5d",
+        "android_client_info": {
+          "package_name": "nz.co.smartbrands.oz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "505695539977-g81il8cbe3trcpaov8qs0348ad34071v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "nz.co.smartbrands.oz",
+            "certificate_hash": "380e6e63b6d436efc7fc9f7ee3649321a9243170"
+          }
+        },
+        {
+          "client_id": "505695539977-dufdrsvpvomt7k7jt4aehv4aqghg7597.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbiv_IHQhefipcfIA-TxlWEIi0jkbkZDE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "505695539977-dufdrsvpvomt7k7jt4aehv4aqghg7597.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

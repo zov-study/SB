@@ -372,7 +372,7 @@ class _ShopEditFormState extends State<ShopEditForm> {
   Widget _buildImage() {
     return Card(
       child: Container(
-        height: MediaQuery.of(context).size.height / 4,
+        height: MediaQuery.of(context).size.height / 3,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -429,21 +429,21 @@ class _ShopEditFormState extends State<ShopEditForm> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
-          SizedBox(
-            width: 300,
-          ),
-          FlatButton(
-            color: Colors.grey,
-            child: Text(
-              'Restore',
-              style: TextStyle(color: Colors.white, fontSize: 18.0),
+        Expanded(
+              child: FlatButton(
+                color: Colors.grey,
+                child: Text(
+                  'Restore',
+                  style: TextStyle(color: Colors.white, fontSize: 18.0),
+                ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
+                onPressed: (() {
+                  // Navigator.of(context).pop();
+                }),
+              ),
             ),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0)),
-            onPressed: (() {
-              // Navigator.of(context).pop();
-            }),
-          ),
+            SizedBox(width: 5.0,),
           RaisedButton(
             color: app_color,
             child: Text(

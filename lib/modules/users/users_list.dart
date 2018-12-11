@@ -90,7 +90,7 @@ class _UsersListState extends State<UsersList> {
                                 : Colors.grey,
                           ),
                         ),
-                        subtitle: Text('Email: ${widget.users[index].email}'),
+                        subtitle: Text('Email: ${widget.users[index].email}',style: TextStyle(fontSize: 12.0),),
                       ),
                     ]),
                   ),

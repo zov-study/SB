@@ -201,7 +201,7 @@ class _UserEditFormState extends State<UserEditForm> {
                 Icons.people,
                 color: Colors.grey,
               ),
-              Text('Choice the role:'),
+              Text('Role:'),
               DropdownButton<String>(
                 value: roles[user.role],
                 items: roles.map((String value) {
@@ -257,7 +257,7 @@ class _UserEditFormState extends State<UserEditForm> {
             children: <Widget>[
               OutlineButton.icon(
                 label: Text(
-                  'Camera',
+                  '',
                 ),
                 icon: Icon(
                   FontAwesomeIcons.camera,
@@ -266,7 +266,7 @@ class _UserEditFormState extends State<UserEditForm> {
               ),
               OutlineButton.icon(
                 label: Text(
-                  'Gallery',
+                  '',
                 ),
                 icon: Icon(
                   FontAwesomeIcons.images,
@@ -297,7 +297,7 @@ class _UserEditFormState extends State<UserEditForm> {
       RaisedButton(
         color: Colors.blueGrey,
         child: Text(
-          'Change password',
+          'Password',
           style: TextStyle(color: Colors.white, fontSize: 18.0),
         ),
         shape:

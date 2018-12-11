@@ -1,1 +1,0 @@
-keytool -exportcert -list -v -alias smartbrands -keystore smartbrahds.cert

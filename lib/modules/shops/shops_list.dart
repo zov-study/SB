@@ -41,9 +41,11 @@ class _ShopsListState extends State<ShopsList> {
         shop.active = lastValue;
       });
     } else {
+       await db.updateValue('shops', shop.key, 'active', active);
+       await db.updateValue('shops', shop.key, 'closeDate',
+          active ? 0 : DateTime.now().millisecondsSinceEpoch);
       setState(() {
         shop.active = active;
-        db.updateValue('shops', shop.key, 'active', active);
       });
     }
   }

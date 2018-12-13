@@ -26,7 +26,14 @@ class DbInstance {
               .equalTo(record['email'])
               .once();
           break;
-        case 'shops':
+        case 'shops' :
+          res = await reference
+              .child(path)
+              .orderByChild('name')
+              .equalTo(record['name'])
+              .once();
+          break;    
+        case 'categories' :
           res = await reference
               .child(path)
               .orderByChild('name')

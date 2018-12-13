@@ -12,6 +12,7 @@ const menu = [
     'role':1, 'description':'Shop Assistant',
     'menu':[
     {'title':'Shops','icon':Icons.shop_two,'navigator':'/shops','priority':0},
+    {'title':'Categories','icon':Icons.category,'navigator':'/categories','priority':3},
     ]
   },
   {

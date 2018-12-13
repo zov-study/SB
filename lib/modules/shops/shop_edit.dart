@@ -16,7 +16,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:oz/helpers/form_validation.dart';
 
 enum ImageMode { None, Asset, Network }
-enum EditMode { Info, Edit }
 
 class ShopEditForm extends StatefulWidget {
   final Shop shop;
@@ -26,13 +25,12 @@ class ShopEditForm extends StatefulWidget {
 }
 
 class _ShopEditFormState extends State<ShopEditForm> {
-  final GlobalKey<FormState> formkey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   TextEditingController _openDate = TextEditingController();
   TextEditingController _openTime = TextEditingController();
   TextEditingController _closeTime = TextEditingController();
   final db = DbInstance();
   bool updated = false;
-  EditMode _formMode = EditMode.Info;
   bool _isEditMode = false;
   final Shop shop = new Shop();
   final FirebaseStorage _storage = new FirebaseStorage();
@@ -42,11 +40,8 @@ class _ShopEditFormState extends State<ShopEditForm> {
   StorageReference _ref;
   FocusNode _shopName = FocusNode();
   FocusNode _shopLocation = FocusNode();
-  FocusNode _shopOpenTime = FocusNode();
-  FocusNode _shopCloseTime = FocusNode();
   FocusNode _shopContactName = FocusNode();
   FocusNode _shopContactPhone = FocusNode();
-  FocusNode _shopOpenDate = FocusNode();
 
   Future<void> _updateIt() async {
     if (_imageFile != null)
@@ -62,8 +57,8 @@ class _ShopEditFormState extends State<ShopEditForm> {
       'contactPhone': shop.contactPhone,
       'image': shop.image,
       'active': shop.active,
-      'openDate': DateTime.now().millisecondsSinceEpoch,
-      'closeDate': DateTime.now().millisecondsSinceEpoch
+      'openDate': shop.openDate,
+      'closeDate': shop.closeDate
     });
     if (result == 'ok') {
       snackbarMessageKey(widget.scaffoldKey,
@@ -71,47 +66,15 @@ class _ShopEditFormState extends State<ShopEditForm> {
     } else {
       snackbarMessageKey(widget.scaffoldKey, 'Error - $result.', app_color, 3);
     }
-    Navigator.of(context).pop();
-  }
-
-  Future<Null> _selectDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now().subtract(Duration(days: 1)),
-        lastDate: DateTime.now().add(Duration(days: 30)));
-    if (picked != null && picked.millisecondsSinceEpoch != shop.openDate)
-      setState(() {
-        _openDate.text = picked.toString().substring(0, 10);
-        shop.openDate = picked.millisecondsSinceEpoch;
-      });
-    print('$picked = ${shop.openDate}');
-  }
-
-  Future<Null> _selectTime(BuildContext context, bool openTime) async {
-    final TimeOfDay picked = await showTimePicker(
-      initialTime: TimeOfDay.now(),
-      context: context,
-    );
-
-    if (picked != null)
-      setState(() {
-        if (openTime) {
-          _openTime.text = picked.toString().substring(10, 15);
-          shop.openHours = picked.toString();
-        } else {
-          _closeTime.text = picked.toString().substring(10, 15);
-          shop.openHours = picked.toString();
-        }
-      });
-    print('$picked = ${shop.openHours}');
+    setState(() {
+      _isEditMode = false;
+    });
   }
 
   DateTime _convertToDate(String input) {
     print(input);
     try {
       var d = DateTime.parse(input);
-      // var d = new DateFormat.yMd().parseStrict(input);
       print(d);
       return d;
     } catch (e) {
@@ -121,11 +84,14 @@ class _ShopEditFormState extends State<ShopEditForm> {
   }
 
   void _checkForm() async {
-    final FormState form = formkey.currentState;
+    final FormState form = _formkey.currentState;
     if (form.validate()) {
       form.save();
-      await warningDialog(context, _updateIt,
-          content: 'Please, Confirm to save data!!!', button: 'Save');
+      if (shop.toJson() == widget.shop.toJson())
+        await warningDialog(context, null, content: 'Nothing changed!!!');
+      else
+        await warningDialog(context, _updateIt,
+            content: 'Please, Confirm to save data!!!', button: 'Save');
     }
   }
 
@@ -139,6 +105,8 @@ class _ShopEditFormState extends State<ShopEditForm> {
       });
     } else {
       await db.updateValue('shops', shop.key, 'active', active);
+      await db.updateValue('shops', shop.key, 'closeDate',
+          active ? 0 : DateTime.now().millisecondsSinceEpoch);
       setState(() {
         shop.active = active;
       });
@@ -183,9 +151,19 @@ class _ShopEditFormState extends State<ShopEditForm> {
     shop.active = widget.shop.active;
     shop.openDate = widget.shop.openDate;
     shop.closeDate = widget.shop.closeDate;
+    if (_imageFile != null) _imageMode = ImageMode.Asset;
+    if (shop.image != null && shop.image.isNotEmpty)
+      _imageMode = ImageMode.Network;
     if (shop.openDate != null && shop.openDate > 0)
-      _openDate.text =
-          DateTime.fromMillisecondsSinceEpoch(shop.openDate).toString();
+      _openDate.text = DateTime.fromMillisecondsSinceEpoch(shop.openDate)
+          .toString()
+          .substring(0, 10);
+    if (shop.openHours != null && shop.openHours.isNotEmpty) {
+      var hours = shop.openHours.split('-');
+      _openTime.text = hours[0];
+      _closeTime.text = hours[1];
+    }
+
     _ref = _storage.ref();
   }
 
@@ -218,7 +196,6 @@ class _ShopEditFormState extends State<ShopEditForm> {
                   onChanged: (bool val) {
                     setState(() {
                       _isEditMode = val;
-                      _formMode = val ? EditMode.Edit : EditMode.Info;
                     });
                   },
                 ),
@@ -232,7 +209,7 @@ class _ShopEditFormState extends State<ShopEditForm> {
     return Container(
       padding: EdgeInsets.all(20.0),
       child: Form(
-        key: formkey,
+        key: _formkey,
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
@@ -279,8 +256,9 @@ class _ShopEditFormState extends State<ShopEditForm> {
               hintText: 'Select the open date',
               labelText: 'Open Date',
             ),
-
-            onChanged: (dt) => setState(() => _openDate.text = dt.toString()),
+            controller: _openDate,
+            onChanged: (dt) =>
+                setState(() => shop.openDate = dt.millisecondsSinceEpoch),
             validator: (val) =>
                 (val != null || _convertToDate(val.toString()) != null)
                     ? null
@@ -296,10 +274,14 @@ class _ShopEditFormState extends State<ShopEditForm> {
                       hintText: '09:00',
                       labelText: 'Open Time:',
                       icon: Icon(Icons.access_time)),
-                  onChanged: (t) =>
-                      setState(() => _openTime.text = t.toString()),
-                  validator: (val) =>
-                      val != null ? null : 'Select an open hour',
+                  controller: _openTime,
+                  onChanged: (t) => setState(() {
+                        // _openTime.text = t.toString();
+                        shop.openHours = "${_openTime.text}-${_closeTime.text}";
+                      }),
+                  validator: (val) => val != null || _openTime != null
+                      ? null
+                      : 'Select an open hour',
                 ),
               ),
               Expanded(
@@ -310,10 +292,14 @@ class _ShopEditFormState extends State<ShopEditForm> {
                       hintText: '17:00',
                       labelText: 'Close Time:',
                       icon: Icon(Icons.remove)),
-                  onChanged: (t) =>
-                      setState(() => _closeTime.text = t.toString()),
-                  validator: (val) =>
-                      val != null ? null : 'Close time cannot be empty!',
+                  controller: _closeTime,
+                  onChanged: (t) => setState(() {
+                        // _closeTime.text = t.toString();
+                        shop.openHours = "${_openTime.text}-${_closeTime.text}";
+                      }),
+                  validator: (val) => val != null || _closeTime != null
+                      ? null
+                      : 'Close time cannot be empty!',
                 ),
               ),
             ],
@@ -325,6 +311,7 @@ class _ShopEditFormState extends State<ShopEditForm> {
                   labelText: 'Conact Name:',
                   icon: Icon(Icons.person)),
               focusNode: _shopContactName,
+              initialValue: shop.contactName,
               validator: (val) =>
                   val.isNotEmpty ? null : 'Contact name cannot be empty',
               onSaved: (String val) => shop.contactName = val.trim(),
@@ -341,6 +328,7 @@ class _ShopEditFormState extends State<ShopEditForm> {
                   icon: Icon(Icons.phone)),
               keyboardType: TextInputType.phone,
               focusNode: _shopContactPhone,
+              initialValue: shop.contactPhone,
               validator: (val) => PhoneFieldValidator.validate(val),
               onSaved: (String val) => shop.contactPhone = val.trim(),
               textInputAction: TextInputAction.next,
@@ -355,6 +343,7 @@ class _ShopEditFormState extends State<ShopEditForm> {
                 labelText: 'Address:',
                 icon: Icon(Icons.location_city),
               ),
+              initialValue: shop.location,
               onSaved: (String val) => shop.location = val.trim(),
               validator: (val) =>
                   val.isNotEmpty ? null : 'Name cannot be empty',
@@ -372,7 +361,8 @@ class _ShopEditFormState extends State<ShopEditForm> {
   Widget _buildImage() {
     return Card(
       child: Container(
-        height: MediaQuery.of(context).size.height / 3,
+        height: 240.0,
+        // MediaQuery.of(context).size.height / 3,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -382,41 +372,61 @@ class _ShopEditFormState extends State<ShopEditForm> {
                 : _imageMode == ImageMode.Asset
                     ? FileImage(_imageFile)
                     : NetworkImage(shop.image),
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
+            _isEditMode && _imageMode != ImageMode.None
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _imageMode = ImageMode.None;
+                            shop.image = null;
+                          });
+                        },
+                      ),
+                    ],
+                  )
+                : Container(),
             SizedBox(
               height: 130.0,
             ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                OutlineButton.icon(
-                  label: Text(
-                    'Camera',
-                  ),
-                  icon: Icon(
-                    FontAwesomeIcons.camera,
-                  ),
-                  onPressed:
-                      _isEditMode ? () => _getImage(ImageSource.camera) : null,
-                ),
-                OutlineButton.icon(
-                  label: Text(
-                    'Gallery',
-                  ),
-                  icon: Icon(
-                    FontAwesomeIcons.images,
-                  ),
-                  onPressed:
-                      _isEditMode ? () => _getImage(ImageSource.gallery) : null,
-                ),
-              ],
-            )
+            _isEditMode
+                ? Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      OutlineButton.icon(
+                        label: Text(
+                          'Camera',
+                        ),
+                        icon: Icon(
+                          FontAwesomeIcons.camera,
+                        ),
+                        onPressed: _isEditMode
+                            ? () => _getImage(ImageSource.camera)
+                            : null,
+                      ),
+                      OutlineButton.icon(
+                        label: Text(
+                          'Gallery',
+                        ),
+                        icon: Icon(
+                          FontAwesomeIcons.images,
+                        ),
+                        onPressed: _isEditMode
+                            ? () => _getImage(ImageSource.gallery)
+                            : null,
+                      ),
+                    ],
+                  )
+                : Container(),
           ],
         ),
       ),
@@ -429,21 +439,23 @@ class _ShopEditFormState extends State<ShopEditForm> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
-        Expanded(
-              child: FlatButton(
-                color: Colors.grey,
-                child: Text(
-                  'Restore',
-                  style: TextStyle(color: Colors.white, fontSize: 18.0),
-                ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0)),
-                onPressed: (() {
-                  // Navigator.of(context).pop();
-                }),
+          Expanded(
+            child: FlatButton(
+              color: Colors.grey,
+              child: Text(
+                'Restore',
+                style: TextStyle(color: Colors.white, fontSize: 18.0),
               ),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0)),
+              onPressed: (() {
+                // Navigator.of(context).pop();
+              }),
             ),
-            SizedBox(width: 5.0,),
+          ),
+          SizedBox(
+            width: 5.0,
+          ),
           RaisedButton(
             color: app_color,
             child: Text(

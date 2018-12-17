@@ -32,10 +32,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   void _categoryAdded(Event event) {
     setState(() {
-      categories.add(Category.fromSnapshot(event.snapshot));
+      var cat = Category.fromSnapshot(event.snapshot);
+      // print(cat.level);
+      if (cat.level==null || cat.level<1){
+      categories.add(cat);
       categories.sort((a, b) => a.name.compareTo(b.name));
       filtered.add(true);
       found++;
+      }
     });
   }
 

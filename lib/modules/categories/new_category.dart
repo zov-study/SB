@@ -14,7 +14,8 @@ enum ImageMode { None, Asset, Network }
 
 class NewCategoryForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
-  NewCategoryForm(this.scaffoldKey);
+  final Category parent;
+  NewCategoryForm(this.scaffoldKey, [this.parent]);
   _NewCategoryFormState createState() => _NewCategoryFormState();
 }
 
@@ -32,7 +33,14 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
   Future<void> _saveIt() async {
     var result;
     if (_imageFile != null) category.image = await _uploadImage(_imageFile);
-    result = await db.createRecord('categories', category.toJson());
+      var parent = widget.parent;
+      if (parent.subcategory == null) parent.subcategory = new List();
+      parent.subcategory.add(category.name);
+      if (parent.level==null) parent.level=0;
+      result = await db.updateRecord('categories', parent.key, parent.toJson());
+      category.level=parent.level+1;
+      category.parent=parent.key;
+      result = await db.createRecord('categories', category.toJson());
     if (result != null) {
       snackbarMessageKey(widget.scaffoldKey,
           'Category - ${category.name} created successfully.', app_color, 3);
@@ -69,6 +77,7 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
   @override
   void initState() {
     super.initState();
+    print(widget.parent);
     _ref = _storage.ref();
   }
 

@@ -5,7 +5,7 @@ import 'package:oz/database/db_firebase.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:oz/modules/categories/new_category.dart';
 // import 'package:oz/helpers/warning_dialog.dart';
-// import 'package:oz/settings/config.dart';
+import 'package:oz/settings/config.dart';
 
 class CategoriesList extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -19,6 +19,7 @@ class CategoriesList extends StatefulWidget {
 
 class _CategoriesListState extends State<CategoriesList> {
   final db = DbInstance();
+  String mess = 'QQQQ';
 
   void _editIt(Category category) {
     // Navigator.push(
@@ -35,26 +36,51 @@ class _CategoriesListState extends State<CategoriesList> {
     return Container(
       margin: EdgeInsets.all(10.0),
       height: 800.0,
-      child: FirebaseAnimatedList(
-          query: db.reference.child('categories').orderByChild('level').endAt(0),
-          itemBuilder: (BuildContext context, DataSnapshot snaphot,
-              Animation<double> animation, int index) {
-            if (widget.filtered[index]) {
-              return Card(
-                child: GestureDetector(
-                  onLongPress: () {
-                    debugPrint(
-                        'Long press to ${widget.categories[index].name}!!!');
+      child: Column(
+        children: <Widget>[
+          Container(
+            child: Column(
+              children: <Widget>[
+                Text(mess),
+                RaisedButton(
+                  onPressed: () async {
+                    var asd = await db.getSubCategory('-LTyaIj3zpDuXwNpzYUp');
+                    setState(() {
+                      mess = '${asd.toString()}';
+                    });
                   },
-                  onDoubleTap: () => _editIt(widget.categories[index]),
-                  child: CategoryCard(
-                      widget.categories[index], widget.scaffoldKey),
-                ),
-              );
-            } else {
-              return Container();
-            }
-          }),
+                  child: Text('Request'),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            child: FirebaseAnimatedList(
+                query: db.reference
+                    .child('categories')
+                    .orderByChild('level')
+                    .endAt(0),
+                itemBuilder: (BuildContext context, DataSnapshot snaphot,
+                    Animation<double> animation, int index) {
+                  if (widget.filtered[index]) {
+                    return Card(
+                      child: GestureDetector(
+                        onLongPress: () {
+                          debugPrint(
+                              'Long press to ${widget.categories[index].name}!!!');
+                        },
+                        onDoubleTap: () => _editIt(widget.categories[index]),
+                        child: CategoryCard(
+                            widget.categories[index], widget.scaffoldKey),
+                      ),
+                    );
+                  } else {
+                    return Container();
+                  }
+                }),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -70,14 +96,30 @@ class CategoryCard extends StatefulWidget {
 
 class _CategoryCardState extends State<CategoryCard> {
   final db = DbInstance();
-  final subcat = List();
-  
-  
+  List<Widget> subwidget = new List();
+  bool isLoaded = false;
+
   @override
-    void initState() {
-      super.initState();
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _buildSubCategory(String key) async {
+    var subcat = await db.getSubCategory(key);
+
+    if (subcat != null && subcat.isNotEmpty) {
+      List<Widget> sublist = new List();
+      subcat.forEach((f) {
+        print('${f.name}!!!!!!!!!!!!!!!!!!!!!');
+        sublist.add(_buildTiles(f));
+      });
+      setState(() {
+        subwidget = sublist;
+      });
     }
-  
+    return subwidget;
+  }
+
   void _newSubCategory(BuildContext context, Category category) async {
     await showDialog(
         context: context,
@@ -85,8 +127,6 @@ class _CategoryCardState extends State<CategoryCard> {
         builder: (BuildContext context) =>
             NewCategoryForm(widget.scaffoldKey, category));
   }
-
-  
 
   Widget _buildTiles(Category category) {
     if (category.subcategory == null || category.subcategory.isEmpty)
@@ -112,35 +152,45 @@ class _CategoryCardState extends State<CategoryCard> {
           ],
         ),
       );
-
-    _getSubCategory(category.key);
-    return  
-    ExpansionTile(
+    return ExpansionTile(
       key: PageStorageKey<Category>(category),
-      leading: CircleAvatar(
+      leading: category.level<1 ? CircleAvatar(
+        backgroundColor: app_color ,
         child: Text('${category.name[0].toUpperCase()}'),
+      ):null,
+      title: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(category.name),
+          ),
+          ButtonBar(
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.add_circle_outline),
+                onPressed: () {
+                  _newSubCategory(context, category);
+                  debugPrint(category.name);
+                },
+              ),
+            ],
+          ),
+        ],
       ),
-      title: Text(category.name),
-      children:subcat.map<Widget>(_buildTiles).toList(),
+      onExpansionChanged: (bool val) {
+        print('Key-${category.key}=$val');
+        if (val) {
+          _buildSubCategory(category.key);
+          setState(() {
+            isLoaded = val;
+          });
+        }
+      },
+      children: subwidget,
 
-      // children: 
+      // children:
       // category.subcategory.map<Widget>(_buildTiles).toList(),
     );
   }
-
-
-Future <void> _getSubCategory(String key) async{
-    await db.reference.child('categories')
-              .orderByChild('parent')
-              .equalTo(key)
-              .once()
-              .then((DataSnapshot snapshot) {
-              MapEntry val = snapshot.value.entries.elementAt(0);
-              print(val);
-              subcat.add(Category.fromMapEntry(val)) ; 
-      });
-}
-
 
   @override
   Widget build(BuildContext context) {

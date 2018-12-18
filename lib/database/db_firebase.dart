@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:oz/modules/users/user.dart';
+import 'package:oz/modules/categories/category.dart';
 import 'dart:async';
 
 class DbInstance {
@@ -26,20 +27,20 @@ class DbInstance {
               .equalTo(record['email'])
               .once();
           break;
-        case 'shops' :
+        case 'shops':
           res = await reference
               .child(path)
               .orderByChild('name')
               .equalTo(record['name'])
               .once();
-          break;    
-        case 'categories' :
+          break;
+        case 'categories':
           res = await reference
               .child(path)
               .orderByChild('name')
               .equalTo(record['name'])
               .once();
-          break;    
+          break;
       }
       if (res.value == null) {
         reference.child(path).push().set(record);
@@ -110,6 +111,31 @@ class DbInstance {
       result = 'ok';
     } catch (e) {
       result = e.toString();
+    }
+    return result;
+  }
+
+  Future<List> getSubCategory(String value) async {
+    var result;
+
+    try {
+      result = await reference
+          .child('categories')
+          .orderByChild('parent')
+          .equalTo(value) //  , key:'parent'
+          .once()
+          .then((DataSnapshot snapshot) {
+        var val = snapshot.value.entries;
+        var lst = new List();
+        val.forEach((f) {
+          print(f.toString());
+          lst.add(Category.fromMapEntry(f));
+        });
+        return lst;
+        // MapEntry val = snapshot.value.entries.elementAt(0);
+      });
+    } catch (e) {
+      print(e);
     }
     return result;
   }

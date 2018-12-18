@@ -114,7 +114,7 @@ class _CategoryCardState extends State<CategoryCard> {
         sublist.add(_buildTiles(f));
       });
       setState(() {
-        subwidget = sublist;
+        subwidget.addAll(sublist);
       });
     }
     return subwidget;

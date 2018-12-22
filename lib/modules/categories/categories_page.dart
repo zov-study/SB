@@ -99,7 +99,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
     await showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context) => NewCategoryForm(_scaffoldKey));
+        builder: (BuildContext context) => NewCategoryForm(_scaffoldKey,'New Category'));
   }
 
   @override

@@ -127,12 +127,11 @@ class DbInstance {
           .then((DataSnapshot snapshot) {
         var val = snapshot.value.entries;
         var lst = new List();
-        val.forEach((f) {
+        val.forEach((f) async {
           print(f.toString());
           lst.add(Category.fromMapEntry(f));
         });
         return lst;
-        // MapEntry val = snapshot.value.entries.elementAt(0);
       });
     } catch (e) {
       print(e);

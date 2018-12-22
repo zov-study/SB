@@ -15,7 +15,8 @@ enum ImageMode { None, Asset, Network }
 class NewCategoryForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   final Category parent;
-  NewCategoryForm(this.scaffoldKey, [this.parent]);
+  final title;
+  NewCategoryForm(this.scaffoldKey,this.title, [this.parent]);
   _NewCategoryFormState createState() => _NewCategoryFormState();
 }
 
@@ -77,7 +78,6 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
   @override
   void initState() {
     super.initState();
-    print(widget.parent);
     _ref = _storage.ref();
   }
 
@@ -85,7 +85,7 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        'New Category',
+        widget.title,
         style: TextStyle(
             color: Colors.blueGrey, decoration: TextDecoration.underline),
       ),

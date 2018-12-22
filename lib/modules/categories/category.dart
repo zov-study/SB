@@ -14,7 +14,8 @@ class Category {
       this.parent = '',
       this.level = 0,
       this.image = '',
-      this.subcategory ]);
+      this.subcategory,
+      ]);
 
   Category.fromSnapshot(DataSnapshot snapshot)
       : key = snapshot.key,

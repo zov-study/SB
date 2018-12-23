@@ -37,7 +37,7 @@ class _CustomerEditFormState extends State<CustomerEditForm> {
       'userUid': auth.uid,
       'date': DateTime.now().millisecondsSinceEpoch
     });
-    if (result == 'ok') {
+    if (result[0] == 'ok') {
       snackbarMessageKey(
           widget.scaffoldKey,
           'Customer - ${widget.customer.name} updated successfully.',

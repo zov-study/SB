@@ -37,14 +37,14 @@ class DbInstance {
         case 'categories':
           res = await reference
               .child(path)
-              .orderByChild('name')
-              .equalTo(record['name'])
+              .orderByChild('catkey')
+              .equalTo(record['catkey'])
               .once();
           break;
       }
       if (res.value == null) {
-        reference.child(path).push().set(record);
-        result = reference.key;
+        await reference.child(path).push().set(record);
+        result = 'reference.key';
       } else {
         result = res.value.entries.elementAt(0).key;
       }

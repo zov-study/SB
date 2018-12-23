@@ -6,16 +6,18 @@ class Category {
   String name;
   int level;
   String image;
-  List<String> subcategory;
+  bool subcategory;
+  String catkey;
 
-  Category(
-      [this.name = '',
-      this.key = '',
-      this.parent = '',
-      this.level = 0,
-      this.image = '',
-      this.subcategory,
-      ]);
+  Category([
+    this.name = '',
+    this.key = '',
+    this.parent = '',
+    this.level = 0,
+    this.image = '',
+    this.subcategory,
+    this.catkey,
+  ]);
 
   Category.fromSnapshot(DataSnapshot snapshot)
       : key = snapshot.key,
@@ -23,7 +25,8 @@ class Category {
         name = snapshot.value['name'],
         level = snapshot.value['level'],
         image = snapshot.value['image'],
-        subcategory = snapshot.value['subcategory']==null ? null: snapshot.value['subcategory'].toString().split(',');
+        subcategory = snapshot.value['subcategory'],
+        catkey = snapshot.value['catkey'];
 
   Category.fromMapEntry(MapEntry snapshot)
       : key = snapshot.key,
@@ -31,17 +34,17 @@ class Category {
         name = snapshot.value['name'],
         level = snapshot.value['level'],
         image = snapshot.value['image'],
-        subcategory = snapshot.value['subcategory']==null ? null: snapshot.value['subcategory'].toString().split(',');
-
-
+        subcategory = snapshot.value['subcategory'] ,
+        catkey = snapshot.value['catkey'];
 
   toJson() {
     return {
-      "parent":parent,
+      "parent": parent,
       "name": name,
-      "level" :level,
+      "level": level,
       "image": image,
-      "subcategory": subcategory==null || subcategory.isEmpty? null:  subcategory.toString(),
+      "subcategory": subcategory ,
+      "catkey": catkey == null ? name + '_' + parent : catkey,
     };
   }
 }

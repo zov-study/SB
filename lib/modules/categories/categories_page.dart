@@ -11,7 +11,8 @@ import 'package:oz/modules/categories/new_category.dart';
 
 class CategoriesPage extends StatefulWidget {
   final String title;
-  CategoriesPage({this.title});
+  final Category parent;
+  CategoriesPage({this.title, this.parent});
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
@@ -33,12 +34,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
   void _categoryAdded(Event event) {
     setState(() {
       var cat = Category.fromSnapshot(event.snapshot);
-      // print(cat.level);
-      if (cat.level==null || cat.level<1){
-      categories.add(cat);
-      categories.sort((a, b) => a.name.compareTo(b.name));
-      filtered.add(true);
-      found++;
+      if (widget.parent == null && cat.level < 1)
+        categories.add(cat);
+      if (widget.parent !=null && widget.parent.key.isNotEmpty && cat.parent == widget.parent.key)
+        categories.add(cat);
+      if (categories.isNotEmpty) {
+        categories.sort((a, b) => a.name.compareTo(b.name));
+        filtered.add(true);
+        found=categories.length;
       }
     });
   }
@@ -48,7 +51,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
       return entry.key == event.snapshot.key;
     });
     setState(() {
-      categories[categories.indexOf(old)] = Category.fromSnapshot(event.snapshot);
+      categories[categories.indexOf(old)] =
+          Category.fromSnapshot(event.snapshot);
     });
   }
 
@@ -99,7 +103,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
     await showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context) => NewCategoryForm(_scaffoldKey,'New Category'));
+        builder: (BuildContext context) =>
+            NewCategoryForm(_scaffoldKey, 'New Category',widget.parent));
   }
 
   @override
@@ -111,7 +116,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : found > 0 ? CategoriesList(_scaffoldKey, categories, filtered) : notFound(),
+          : found > 0
+              ? CategoriesList(_scaffoldKey, categories, filtered)
+              : notFound(),
       floatingActionButton: FloatingActionButton(
         backgroundColor: app_color,
         child: Icon(Icons.add),

@@ -16,7 +16,7 @@ class NewCategoryForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   final Category parent;
   final title;
-  NewCategoryForm(this.scaffoldKey,this.title, [this.parent]);
+  NewCategoryForm(this.scaffoldKey, this.title, [this.parent]);
   _NewCategoryFormState createState() => _NewCategoryFormState();
 }
 
@@ -33,16 +33,17 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
 
   Future<void> _saveIt() async {
     var result;
-    if (_imageFile != null) category.image = await _uploadImage(_imageFile);
-      var parent = widget.parent;
-      if (parent.subcategory == null) parent.subcategory = new List();
-      parent.subcategory.add(category.name);
-      if (parent.level==null) parent.level=0;
+    var parent = widget.parent;
+    if (parent != null) {
+      if (parent.subcategory == null) parent.subcategory = true;
+      if (parent.level == null) parent.level = 0;
       result = await db.updateRecord('categories', parent.key, parent.toJson());
-      category.level=parent.level+1;
-      category.parent=parent.key;
-      result = await db.createRecord('categories', category.toJson());
-    if (result != null) {
+      category.level = parent.level + 1;
+      category.parent = parent.key;
+    }
+    if (_imageFile != null) category.image = await _uploadImage(_imageFile);
+    result = await db.createRecord('categories', category.toJson());
+    if (result == 'ok') {
       snackbarMessageKey(widget.scaffoldKey,
           'Category - ${category.name} created successfully.', app_color, 3);
     } else {

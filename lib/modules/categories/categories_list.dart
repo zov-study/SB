@@ -12,6 +12,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:oz/helpers/snackbar_message.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'categories_page.dart';
 
 class CategoriesList extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -25,21 +26,30 @@ class CategoriesList extends StatefulWidget {
 
 class _CategoriesListState extends State<CategoriesList> {
   final db = DbInstance();
+  Query _query;
 
-  void _editIt(Category category) {
-    // Navigator.push(
-    //     context, MaterialPageRoute(builder: (context) => ShopTabs(shop: shop)));
-    // await showDialog(
-    //     context: context,
-    //     barrierDismissible: false,
-    //     builder: (BuildContext context) =>
-    //         ShopEditForm(widget.scaffoldKey, shop));
+   void _showSubCategory(Category category){
+      Navigator.push(
+        context, MaterialPageRoute(builder: (context) => CategoriesPage(title: category.name ,parent: category)));
+  }
+  
+  
+  @override
+  void initState() {
+    super.initState();
+    if (widget.categories[0].level < 1)
+      _query = db.reference.child('categories').orderByChild('level').endAt(0);
+    else
+      _query = db.reference
+          .child('categories')
+          .orderByChild('parent')
+          .equalTo(widget.categories[0].parent);
   }
 
   @override
   Widget build(BuildContext context) {
     return FirebaseAnimatedList(
-        query: db.reference.child('categories').orderByChild('level').endAt(0),
+        query: _query,
         itemBuilder: (BuildContext context, DataSnapshot snaphot,
             Animation<double> animation, int index) {
           if (widget.filtered[index]) {
@@ -49,7 +59,7 @@ class _CategoriesListState extends State<CategoriesList> {
                   debugPrint(
                       'Long press to ${widget.categories[index].name}!!!');
                 },
-                onDoubleTap: () => _editIt(widget.categories[index]),
+                onTap: () => _showSubCategory(widget.categories[index]),
                 child:
                     CategoryCard(widget.categories[index], widget.scaffoldKey),
               ),
@@ -79,7 +89,6 @@ class _CategoryCardState extends State<CategoryCard> {
   File _imageFile;
   ImageMode _imageMode = ImageMode.None;
   StorageReference _ref;
-  bool _isLoaded = false;
   bool _isEdit = false;
   bool _allowSave = false;
 
@@ -257,6 +266,11 @@ class _CategoryCardState extends State<CategoryCard> {
             widget.scaffoldKey, '${category.name}->New subcategory', category));
   }
 
+  void _showSubCategory(Category category){
+      Navigator.push(
+        context, MaterialPageRoute(builder: (context) => CategoriesPage(title: category.name ,parent: category)));
+  }
+
   Widget _buildButtons(Category category) {
     return ButtonBar(
       children: <Widget>[
@@ -299,7 +313,7 @@ class _CategoryCardState extends State<CategoryCard> {
             : IconButton(
                 icon: Icon(Icons.fast_forward),
                 onPressed: () {
-                  print('next');
+                  _showSubCategory(category);
                 },
               ),
       ],

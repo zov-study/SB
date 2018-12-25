@@ -41,10 +41,17 @@ class DbInstance {
               .equalTo(record['catkey'])
               .once();
           break;
+        case 'stock':
+          res = await reference
+              .child(path)
+              .orderByChild('itemkey')
+              .equalTo(record['itemkey'])
+              .once();
+          break;
       }
       if (res.value == null) {
         await reference.child(path).push().set(record);
-        result = 'reference.key';
+        result = 'ok';
       } else {
         result = res.value.entries.elementAt(0).key;
       }

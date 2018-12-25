@@ -4,41 +4,41 @@ import 'package:path/path.dart' as p;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:oz/database/db_firebase.dart';
-import 'package:oz/modules/categories/category.dart';
-import 'package:oz/modules/categories/new_category.dart';
 import 'package:oz/helpers/warning_dialog.dart';
 import 'package:oz/settings/config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:oz/helpers/snackbar_message.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:oz/modules/categories/categories_page.dart';
-import 'package:oz/modules/stock/stock_page.dart';
+import 'package:oz/modules/categories/category.dart';
+import 'package:oz/modules/stock/item.dart';
+import 'package:oz/modules/stock/new_item.dart';
 
-class CategoriesList extends StatefulWidget {
+class StockList extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
-  final List<Category> categories;
+  final List<Item> stock;
   final List<bool> filtered;
-  CategoriesList(this.scaffoldKey, this.categories, this.filtered);
+  final Category category;
+  StockList(this.scaffoldKey, this.category, this.stock, this.filtered);
 
   @override
-  _CategoriesListState createState() => _CategoriesListState();
+  _StockListState createState() => _StockListState();
 }
 
-class _CategoriesListState extends State<CategoriesList> {
+class _StockListState extends State<StockList> {
   final db = DbInstance();
   Query _query;
 
   @override
   void initState() {
     super.initState();
-    if (widget.categories[0].level < 1)
-      _query = db.reference.child('categories').orderByChild('level').endAt(0);
+    if (widget.category == null)
+      _query = db.reference.child('stock').orderByChild('name');
     else
       _query = db.reference
-          .child('categories')
-          .orderByChild('parent')
-          .equalTo(widget.categories[0].parent);
+          .child('stock')
+          .orderByChild('category')
+          .equalTo(widget.category.key);
   }
 
   @override
@@ -51,13 +51,10 @@ class _CategoriesListState extends State<CategoriesList> {
             return Card(
               child: GestureDetector(
                 onLongPress: () {
-                  debugPrint(
-                      'Long press to ${widget.categories[index].name}!!!');
+                  debugPrint('Long press to ${widget.stock[index].name}!!!');
                 },
-                onTap: () =>
-                    showSubCatOrItem(context, widget.categories[index]),
-                child:
-                    CategoryCard(widget.categories[index], widget.scaffoldKey),
+                onTap: () => print(widget.stock[index]),
+                child: ItemCard(widget.stock[index], widget.scaffoldKey),
               ),
             );
           } else {
@@ -67,16 +64,16 @@ class _CategoriesListState extends State<CategoriesList> {
   }
 }
 
-class CategoryCard extends StatefulWidget {
-  final Category category;
+class ItemCard extends StatefulWidget {
+  final Item item;
   final GlobalKey<ScaffoldState> scaffoldKey;
 
-  CategoryCard(this.category, this.scaffoldKey);
+  ItemCard(this.item, this.scaffoldKey);
   @override
-  _CategoryCardState createState() => _CategoryCardState();
+  _ItemCardState createState() => _ItemCardState();
 }
 
-class _CategoryCardState extends State<CategoryCard> {
+class _ItemCardState extends State<ItemCard> {
   final db = DbInstance();
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   final FirebaseStorage _storage = new FirebaseStorage();
@@ -93,8 +90,8 @@ class _CategoryCardState extends State<CategoryCard> {
     super.initState();
     _ref = _storage.ref();
     _name.addListener(_checkToSave);
-    _name.text = widget.category.name;
-    _image = widget.category.image;
+    _name.text = widget.item.name;
+    _image = widget.item.image;
     _imageMode = _image != null && _image.isNotEmpty
         ? ImageMode.Network
         : ImageMode.None;
@@ -102,11 +99,11 @@ class _CategoryCardState extends State<CategoryCard> {
 
   void _checkToSave() {
     setState(() {
-      _allowSave = _name.text.isNotEmpty && _name.text != widget.category.name;
+      _allowSave = _name.text.isNotEmpty && _name.text != widget.item.name;
     });
   }
 
-  Widget _buildTiles(Category category) {
+  Widget _buildTiles(Item item) {
     return Container(
       child: Column(
         children: <Widget>[
@@ -118,15 +115,14 @@ class _CategoryCardState extends State<CategoryCard> {
                 Padding(
                   padding: EdgeInsets.all(12.0),
                   child: CircleAvatar(
-                    backgroundColor:
-                        category.level < 1 ? app_color : Colors.blueGrey,
-                    child: Text('${category.name[0].toUpperCase()}'),
+                    backgroundColor: app_color,
+                    child: Text('${item.name[0].toUpperCase()}'),
                   ),
                 ),
                 Expanded(
-                  child: _buildForm(category),
+                  child: _buildForm(item),
                 ),
-                _buildButtons(category),
+                _buildButtons(item),
               ],
             ),
           ),
@@ -135,7 +131,7 @@ class _CategoryCardState extends State<CategoryCard> {
     );
   }
 
-  Widget _buildForm(Category category) {
+  Widget _buildForm(Item item) {
     return Form(
       key: _formkey,
       child: TextFormField(
@@ -144,7 +140,7 @@ class _CategoryCardState extends State<CategoryCard> {
         controller: _name,
         decoration: InputDecoration(
             contentPadding: EdgeInsets.all(5.0),
-            hintText: 'category name',
+            hintText: 'Item name',
             border: _isEdit ? null : InputBorder.none),
         validator: (val) => val.isNotEmpty ? null : 'name cannot be empty',
         onFieldSubmitted: (String val) {
@@ -159,22 +155,22 @@ class _CategoryCardState extends State<CategoryCard> {
 
   Future<void> _saveIt() async {
     var result = 'ok';
-    Category category = widget.category;
+    Item item = widget.item;
     String image;
-    if (_name.text != null && _name.text != category.name)
-      result = await db.updateValue(
-          'categories', category.key, "name", _name.text.trim());
-    if (_imageFile != null)
-      image = await _uploadImage(_imageFile, category.key);
-    if (_image != category.image)
-      result = await db.updateValue('categories', category.key, "image", image);
+    if (_name.text != null && _name.text != item.name)
+      result =
+          await db.updateValue('stock', item.key, "name", _name.text.trim());
+    if (_imageFile != null) image = await _uploadImage(_imageFile, item.key);
+    if (_image != item.image)
+      result = await db.updateValue('stock', item.key, "image", image);
 
     if (result == 'ok') {
       snackbarMessageKey(widget.scaffoldKey,
-          'Category - ${_name.text} updated successfully.', app_color, 3);
+          'Item - ${_name.text} updated successfully.', app_color, 3);
     } else {
       snackbarMessageKey(widget.scaffoldKey, 'Error - $result.', app_color, 3);
     }
+    // Navigator.of(context).pop();
   }
 
   void _checkForm() async {
@@ -253,15 +249,7 @@ class _CategoryCardState extends State<CategoryCard> {
     );
   }
 
-  void _newSubCategory(Category category) async {
-    await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) => NewCategoryForm(
-            widget.scaffoldKey, '${category.name}->New subcategory', category));
-  }
-
-  Widget _buildButtons(Category category) {
+  Widget _buildButtons(Item item) {
     return ButtonBar(
       children: <Widget>[
         _isEdit
@@ -269,8 +257,8 @@ class _CategoryCardState extends State<CategoryCard> {
                 icon: Icon(Icons.clear),
                 onPressed: () {
                   setState(() {
-                    _name.text = category.name;
-                    _image = category.image;
+                    _name.text = item.name;
+                    _image = item.image;
                     _imageMode = _image != null && _image.isNotEmpty
                         ? ImageMode.Network
                         : ImageMode.None;
@@ -289,44 +277,12 @@ class _CategoryCardState extends State<CategoryCard> {
                     });
                   }
                 : null),
-        _isEdit
-            ? null
-            : IconButton(
-                icon: Icon(Icons.add_circle_outline),
-                onPressed: () {
-                  _newSubCategory(category);
-                  debugPrint(category.name);
-                },
-              ),
-        _isEdit
-            ? null
-            : IconButton(
-                icon: Icon(Icons.fast_forward),
-                onPressed: () {
-                  showSubCatOrItem(context, category);
-                },
-              ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return _buildTiles(widget.category);
+    return _buildTiles(widget.item);
   }
-}
-
-void showSubCatOrItem(BuildContext context, Category category) {
-  if (category.subcategory != null && category.subcategory)
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                CategoriesPage(title: category.name, parent: category)));
-  else
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                StockPage(title: category.name, category: category)));
 }

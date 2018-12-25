@@ -1,0 +1,139 @@
+import 'package:flutter/material.dart';
+import 'package:oz/database/db_firebase.dart';
+import 'package:flutter_search_bar/flutter_search_bar.dart';
+import 'package:oz/settings/config.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:oz/helpers/snackbar_message.dart';
+import 'package:oz/helpers/not_found.dart';
+import 'package:oz/modules/categories/category.dart';
+import 'package:oz/modules/stock/item.dart';
+import 'package:oz/modules/stock/stock_list.dart';
+import 'package:oz/modules/stock/new_item.dart';
+
+class StockPage extends StatefulWidget {
+  final String title;
+  final Category category;
+  StockPage({this.title, this.category});
+  _StockPageState createState() => _StockPageState();
+}
+
+class _StockPageState extends State<StockPage> {
+  List<Item> stock = List();
+  List<bool> filtered = List();
+  bool isSelectedAll = false;
+  int found = -1;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final db = DbInstance();
+
+  @override
+  void initState() {
+    super.initState();
+    db.reference.child('stock').onChildAdded.listen(_stockAdded);
+    db.reference.child('stock').onChildChanged.listen(_stockChanged);
+    // Future.delayed(Duration(seconds: 3),_checkStock);
+  }
+
+  Future<void> _checkStock() async{
+    print('CheckStock');
+    setState(() {
+          found=stock.length;
+        });
+  }
+  
+  void _stockAdded(Event event) {
+    setState(() {
+      var item = Item.fromSnapshot(event.snapshot);
+      if (widget.category != null &&
+          item.key.isNotEmpty &&
+          item.category == widget.category.key) stock.add(item);
+      if (stock.isNotEmpty) {
+        stock.sort((a, b) => a.name.compareTo(b.name));
+        filtered.add(true);
+        found = stock.length;
+      }
+    });
+  }
+
+  void _stockChanged(Event event) {
+    var old = stock.singleWhere((entry) {
+      return entry.key == event.snapshot.key;
+    });
+    setState(() {
+      stock[stock.indexOf(old)] = Item.fromSnapshot(event.snapshot);
+    });
+  }
+
+  SearchBar searchBar;
+
+  AppBar buildAppBar(BuildContext context) {
+    return AppBar(
+      title: Text(widget.title),
+      actions: [
+        searchBar.getSearchAction(context),
+        found == 0
+            ? IconButton(
+                icon: Icon(Icons.close),
+                color: Colors.white,
+                onPressed: (() {
+                  onSubmitted('');
+                }),
+              )
+            : Container(),
+      ],
+      backgroundColor: app_color,
+    );
+  }
+
+  _StockPageState() {
+    searchBar = new SearchBar(
+        inBar: false,
+        buildDefaultAppBar: buildAppBar,
+        setState: setState,
+        onSubmitted: onSubmitted);
+  }
+
+  void onSubmitted(String value) {
+    print(value);
+    found = 0;
+    setState(() {
+      for (int i = 0; i < stock.length; i++) {
+        filtered[i] = stock[i].name.toLowerCase().contains(value);
+        if (filtered[i]) found++;
+      }
+      if (found > 0)
+        snackbarMessageKey(
+            _scaffoldKey, "Were found $found items", app_color, 3);
+    });
+  }
+
+  void _newItem() async {
+    await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) =>
+            NewItemForm(_scaffoldKey, 'New Item', widget.category));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: searchBar.build(context),
+      body: found == -1
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : found > 0
+              ? StockList(_scaffoldKey, widget.category, stock, filtered)
+              : notFound(),
+      floatingActionButton: widget.category != null
+          ? FloatingActionButton(
+              backgroundColor: app_color,
+              child: Icon(Icons.add),
+              tooltip: 'New Item.',
+              onPressed: () => _newItem(),
+            )
+          : null,
+    );
+  }
+}

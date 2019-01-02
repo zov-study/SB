@@ -6,6 +6,7 @@ import 'package:oz/database/db_firebase.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:oz/helpers/warning_dialog.dart';
 import 'package:oz/helpers/snackbar_message.dart';
+import 'package:oz/helpers/barcode_scaner.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:oz/modules/stock/item.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,24 +23,27 @@ class NewItemForm extends StatefulWidget {
 }
 
 class _NewItemFormState extends State<NewItemForm> {
-  final GlobalKey<FormState> formkey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   final db = DbInstance();
-  final Item item = new Item();
+  final Item _item = new Item();
   final FirebaseStorage _storage = new FirebaseStorage();
   StorageReference _ref;
   ImageMode _imageMode = ImageMode.None;
   File _imageFile;
 
   FocusNode _itemName = FocusNode();
+  FocusNode _itemAmount = FocusNode();
+  FocusNode _itemPrice = FocusNode();
+  FocusNode _itemStorage = FocusNode();
 
   Future<void> _saveIt() async {
     var result;
-    item.category = widget.category.key;
-    if (_imageFile != null) item.image = await _uploadImage(_imageFile);
-    result = await db.createRecord('stock', item.toJson());
+    _item.category = widget.category.key;
+    if (_imageFile != null) _item.image = await _uploadImage(_imageFile);
+    result = await db.createRecord('stock', _item.toJson());
     if (result == 'ok') {
       snackbarMessageKey(widget.scaffoldKey,
-          'Item - ${item.name} created successfully.', app_color, 3);
+          'Item - ${_item.name} created successfully.', app_color, 3);
     } else {
       snackbarMessageKey(widget.scaffoldKey, 'Error - $result.', app_color, 3);
     }
@@ -47,19 +51,18 @@ class _NewItemFormState extends State<NewItemForm> {
   }
 
   void _checkForm() async {
-    final FormState form = formkey.currentState;
+    final FormState form = _formkey.currentState;
     if (form.validate()) {
       form.save();
       await warningDialog(context, _saveIt,
-          content: 'Please, Confirm to create new item!!!',
-          button: 'Create');
+          content: 'Please, Confirm to create new item!!!', button: 'Create');
     }
   }
 
   Future<String> _uploadImage(File image) async {
     if (image == null) return null;
     StorageUploadTask uploadTask = _ref
-        .child('images/${item.key}${p.extension(image.path)}')
+        .child('images/${_item.key}${p.extension(image.path)}')
         .putFile(image);
 
     StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
@@ -101,7 +104,7 @@ class _NewItemFormState extends State<NewItemForm> {
 
   Widget _buildForm() {
     return Form(
-      key: formkey,
+      key: _formkey,
       child: Column(
         children: <Widget>[
           Container(
@@ -111,18 +114,111 @@ class _NewItemFormState extends State<NewItemForm> {
             child: _buildImage(),
           ),
           TextFormField(
-            decoration: InputDecoration(
-              hintText: 'item name',
-              labelText: 'Name',
-              icon: Icon(Icons.list),
-            ),
-            onSaved: (val) => item.name = val.trim(),
-            validator: (val) =>
-                val.isNotEmpty ? null : 'Item name cannot be empty',
-            initialValue: item.name,
-            textInputAction: TextInputAction.next,
-            focusNode: _itemName,
+              decoration: InputDecoration(
+                hintText: 'item name',
+                labelText: 'Name',
+                icon: Icon(Icons.subtitles),
+              ),
+              onSaved: (val) => _item.name = val.trim(),
+              validator: (val) =>
+                  val.isNotEmpty ? null : 'Item name cannot be empty',
+              initialValue: _item.name,
+              textInputAction: TextInputAction.next,
+              focusNode: _itemName,
+              onFieldSubmitted: (term) {
+                _itemName.unfocus();
+                FocusScope.of(context).requestFocus(_itemAmount);
+              }),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: TextFormField(
+                    textAlign: TextAlign.right,
+                    enableInteractiveSelection: true,
+                    decoration: InputDecoration(
+                      hintText: 'item amount',
+                      labelText: 'Amount',
+                      icon: Icon(Icons.code),
+                    ),
+                    onSaved: (String val) => _item.amount =  int.tryParse(val) ,
+                    validator: (val) =>
+                        val.isNotEmpty ? null : 'Item amount cannot be empty',
+                    initialValue: _item.amount.toStringAsFixed(0),
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: false),
+                    textInputAction: TextInputAction.next,
+                    focusNode: _itemAmount,
+                    onFieldSubmitted: (term) {
+                      _itemAmount.unfocus();
+                      FocusScope.of(context).requestFocus(_itemPrice);
+                    }),
+              ),
+              Expanded(
+                child: TextFormField(
+                    textAlign: TextAlign.right,
+                    decoration: InputDecoration(
+                      hintText: 'item price',
+                      labelText: 'Price',
+                      icon: Icon(Icons.monetization_on),
+                    ),
+                    onSaved: (val) => _item.price = double.tryParse(val),
+                    validator: (val) =>
+                        val.isNotEmpty ? null : 'Price cannot be empty',
+                    initialValue: _item.price.toStringAsFixed(2),
+                    textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.numberWithOptions(),
+                    focusNode: _itemPrice,
+                    onFieldSubmitted: (term) {
+                      _itemPrice.unfocus();
+                      FocusScope.of(context).requestFocus(_itemStorage);
+                    }),
+              ),
+            ],
           ),
+          TextFormField(
+              decoration: InputDecoration(
+                hintText: 'item storage',
+                labelText: 'Storage',
+                icon: Icon(Icons.storage),
+              ),
+              onSaved: (val) => _item.storage = val.trim(),
+              validator: (val) =>
+                  val.isNotEmpty ? null : 'Item storage cannot be empty',
+              initialValue: _item.storage,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.done,
+              focusNode: _itemStorage,
+              onFieldSubmitted: (term) {
+                _itemStorage.unfocus();
+              }),
+          SizedBox(
+            height: 20.0,
+          ),
+          _item.barcode == null || _item.barcode.isEmpty
+              ? OutlineButton(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(Icons.scanner),
+                      Text(' BarCode Scanner'),
+                    ],
+                  ),
+                  onPressed: () async {
+                    var barcode = await barcodeScan();
+                    if (barcode != null && barcode.isNotEmpty)
+                      setState(() {
+                        _item.barcode = barcode;
+                      });
+                  },
+                )
+              : TextFormField(
+                  enabled: false,
+                  decoration: InputDecoration(
+                    hintText: 'item barcode',
+                    labelText: 'Barcode',
+                    icon: Icon(Icons.scanner),
+                  ),
+                ),
         ],
       ),
     );
@@ -179,7 +275,7 @@ class _NewItemFormState extends State<NewItemForm> {
               ? AssetImage('assets/images/not-available.png')
               : _imageMode == ImageMode.Asset
                   ? FileImage(_imageFile)
-                  : NetworkImage(item.image),
+                  : NetworkImage(_item.image),
           fit: BoxFit.contain,
         ),
       ),

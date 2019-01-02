@@ -30,7 +30,7 @@ class Item {
         image = snapshot.value['image'],
         barcode = snapshot.value['barcode'],
         amount = snapshot.value['amount'],
-        price = snapshot.value['price'],
+        price = snapshot.value['price']/100,
         storage = snapshot.value['storage'],
         itemkey = snapshot.value['itemkey'];
 
@@ -41,7 +41,7 @@ class Item {
         image = snapshot.value['image'],
         barcode = snapshot.value['barcode'],
         amount = snapshot.value['amount'],
-        price = snapshot.value['price'],
+        price = snapshot.value['price']/100,
         storage = snapshot.value['storage'],
         itemkey = snapshot.value['itemkey'];
 
@@ -52,7 +52,7 @@ class Item {
       "image": image,
       "barcode": barcode,
       "amount": amount,
-      "price": price,
+      "price": price*100,
       "storage": storage ,
       "itemkey": itemkey == null ? name + '_' + category : itemkey,
     };

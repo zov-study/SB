@@ -29,19 +29,20 @@ class _CategoriesPageState extends State<CategoriesPage> {
     super.initState();
     db.reference.child('categories').onChildAdded.listen(_categoryAdded);
     db.reference.child('categories').onChildChanged.listen(_categoryChanged);
+    db.reference.child('categories').onChildRemoved.listen(_categoryRemoved);
   }
 
   void _categoryAdded(Event event) {
     setState(() {
       var cat = Category.fromSnapshot(event.snapshot);
-      if (widget.parent == null && cat.level < 1)
-        categories.add(cat);
-      if (widget.parent !=null && widget.parent.key.isNotEmpty && cat.parent == widget.parent.key)
-        categories.add(cat);
+      if (widget.parent == null && cat.level < 1) categories.add(cat);
+      if (widget.parent != null &&
+          widget.parent.key.isNotEmpty &&
+          cat.parent == widget.parent.key) categories.add(cat);
       if (categories.isNotEmpty) {
         categories.sort((a, b) => a.name.compareTo(b.name));
         filtered.add(true);
-        found=categories.length;
+        found = categories.length;
       }
     });
   }
@@ -54,6 +55,20 @@ class _CategoriesPageState extends State<CategoriesPage> {
       categories[categories.indexOf(old)] =
           Category.fromSnapshot(event.snapshot);
     });
+  }
+
+  void _categoryRemoved(Event event) async {
+    var old = categories.singleWhere((entry) {
+      return entry.key == event.snapshot.key;
+    });
+
+    if (categories.length == 1 && old.level > 0) {
+      if (old.parent != null &&
+          old.parent.isNotEmpty)
+        await db.updateValue(
+            'categories', old.parent, 'subcategory', false);
+      Navigator.of(context).pop();
+    }
   }
 
   SearchBar searchBar;
@@ -104,7 +119,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) =>
-            NewCategoryForm(_scaffoldKey, 'New Category',widget.parent));
+            NewCategoryForm(_scaffoldKey, 'New Category', widget.parent));
   }
 
   @override

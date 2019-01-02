@@ -35,7 +35,7 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
     var result;
     var parent = widget.parent;
     if (parent != null) {
-      if (parent.subcategory == null) parent.subcategory = true;
+      if (parent.subcategory == null || !parent.subcategory) parent.subcategory = true;
       if (parent.level == null) parent.level = 0;
       result = await db.updateRecord('categories', parent.key, parent.toJson());
       category.level = parent.level + 1;
@@ -196,19 +196,13 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              OutlineButton.icon(
-                label: Text(
-                  'Camera',
-                ),
+              IconButton(
                 icon: Icon(
                   FontAwesomeIcons.camera,
                 ),
                 onPressed: () => _getImage(ImageSource.camera),
               ),
-              OutlineButton.icon(
-                label: Text(
-                  'Gallery',
-                ),
+              IconButton(
                 icon: Icon(
                   FontAwesomeIcons.images,
                 ),

@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:oz/modules/users/user.dart';
 import 'package:oz/modules/categories/category.dart';
+import 'package:oz/modules/stock/item.dart';
 import 'dart:async';
 
 class DbInstance {
@@ -145,4 +146,29 @@ class DbInstance {
     }
     return result;
   }
+
+  Future<List> getItemsByKey(String value) async {
+    var result;
+
+    try {
+      result = await reference
+          .child('stock')
+          .orderByChild('category')
+          .equalTo(value) //  , key:'parent'
+          .once()
+          .then((DataSnapshot snapshot) {
+        var val = snapshot.value.entries;
+        var lst = new List();
+        val.forEach((f) async {
+          print(f.toString());
+          lst.add(Item.fromMapEntry(f));
+        });
+        return lst;
+      });
+    } catch (e) {
+      print(e);
+    }
+    return result;
+  }
+
 }

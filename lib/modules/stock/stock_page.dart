@@ -5,6 +5,7 @@ import 'package:oz/settings/config.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:oz/helpers/snackbar_message.dart';
 import 'package:oz/helpers/not_found.dart';
+import 'package:oz/helpers/barcode_scaner.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:oz/modules/stock/item.dart';
 import 'package:oz/modules/stock/stock_list.dart';
@@ -30,22 +31,15 @@ class _StockPageState extends State<StockPage> {
     super.initState();
     db.reference.child('stock').onChildAdded.listen(_stockAdded);
     db.reference.child('stock').onChildChanged.listen(_stockChanged);
-    // Future.delayed(Duration(seconds: 3),_checkStock);
   }
 
-  Future<void> _checkStock() async{
-    print('CheckStock');
-    setState(() {
-          found=stock.length;
-        });
-  }
-  
   void _stockAdded(Event event) {
     setState(() {
       var item = Item.fromSnapshot(event.snapshot);
       if (widget.category != null &&
           item.key.isNotEmpty &&
           item.category == widget.category.key) stock.add(item);
+      if (widget.category == null) stock.add(item);
       if (stock.isNotEmpty) {
         stock.sort((a, b) => a.name.compareTo(b.name));
         filtered.add(true);
@@ -70,13 +64,22 @@ class _StockPageState extends State<StockPage> {
       title: Text(widget.title),
       actions: [
         searchBar.getSearchAction(context),
+        IconButton(
+          icon: Icon(Icons.scanner),
+          color: Colors.white,
+          tooltip: 'Search by barcode',
+          onPressed: () async {
+            var barcode = await barcodeScan();
+            onSubmitted(barcode, true);
+          },
+        ),
         found == 0
             ? IconButton(
                 icon: Icon(Icons.close),
                 color: Colors.white,
-                onPressed: (() {
+                onPressed: () {
                   onSubmitted('');
-                }),
+                },
               )
             : Container(),
       ],
@@ -92,12 +95,23 @@ class _StockPageState extends State<StockPage> {
         onSubmitted: onSubmitted);
   }
 
-  void onSubmitted(String value) {
+  void onSubmitted(String value, [bool isBarcode = false]) {
     print(value);
     found = 0;
     setState(() {
       for (int i = 0; i < stock.length; i++) {
-        filtered[i] = stock[i].name.toLowerCase().contains(value);
+        if (isBarcode)
+          filtered[i] = stock[i]
+              .barcode
+              .toLowerCase()
+              .trim()
+              .contains(value.trim().toLowerCase());
+        else
+          filtered[i] = stock[i]
+              .name
+              .toLowerCase()
+              .trim()
+              .contains(value.trim().toLowerCase());
         if (filtered[i]) found++;
       }
       if (found > 0)

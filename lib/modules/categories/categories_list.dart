@@ -45,9 +45,20 @@ class _CategoriesListState extends State<CategoriesList> {
   Widget build(BuildContext context) {
     return FirebaseAnimatedList(
         query: _query,
-        itemBuilder: (BuildContext context, DataSnapshot snaphot,
+        sort: (a, b) =>  a.value['name'].compareTo(b.value['name']), 
+        padding: EdgeInsets.all(8.0),
+        defaultChild: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(app_color),
+            strokeWidth: 2.0,
+          ),
+        ),
+        itemBuilder: (BuildContext context, DataSnapshot snapshot,
             Animation<double> animation, int index) {
-          if (widget.filtered[index]) {
+          var category = Category.fromSnapshot(snapshot);
+          print('${category.name}-${widget.categories[index].name}=$index');
+          widget.categories[index] = category;
+          if (index < widget.filtered.length && widget.filtered[index]) {
             return Card(
               child: GestureDetector(
                 onLongPress: () {
@@ -87,17 +98,40 @@ class _CategoryCardState extends State<CategoryCard> {
   StorageReference _ref;
   bool _isEdit = false;
   bool _allowSave = false;
+  bool _allowDelete = false;
 
   @override
   void initState() {
     super.initState();
     _ref = _storage.ref();
     _name.addListener(_checkToSave);
-    _name.text = widget.category.name;
-    _image = widget.category.image;
-    _imageMode = _image != null && _image.isNotEmpty
-        ? ImageMode.Network
-        : ImageMode.None;
+    _updateVars();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateVars();
+  }
+
+  void _updateVars() {
+    setState(() {
+      _name.text = widget.category.name;
+      _image = widget.category.image;
+      _imageMode = _image != null && _image.isNotEmpty
+          ? ImageMode.Network
+          : ImageMode.None;
+    });
+    _checkToDelete();
+  }
+
+  void _checkToDelete() async {
+    var subcat = widget.category.subcategory;
+    var stock = await db.getItemsByKey(widget.category.key);
+    setState(() {
+      _allowDelete =
+          (subcat == null || !subcat) && (stock == null || stock.isEmpty);
+    });
   }
 
   void _checkToSave() {
@@ -138,22 +172,24 @@ class _CategoryCardState extends State<CategoryCard> {
   Widget _buildForm(Category category) {
     return Form(
       key: _formkey,
-      child: TextFormField(
-        enabled: _isEdit,
-        autovalidate: true,
-        controller: _name,
-        decoration: InputDecoration(
-            contentPadding: EdgeInsets.all(5.0),
-            hintText: 'category name',
-            border: _isEdit ? null : InputBorder.none),
-        validator: (val) => val.isNotEmpty ? null : 'name cannot be empty',
-        onFieldSubmitted: (String val) {
-          if (_allowSave) _checkForm();
-          setState(() {
-            _isEdit = !_isEdit;
-          });
-        },
-      ),
+      child: _isEdit
+          ? TextFormField(
+              autovalidate: true,
+              controller: _name,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.all(5.0),
+                hintText: 'category name',
+              ),
+              validator: (val) =>
+                  val.isNotEmpty ? null : 'name cannot be empty',
+              onFieldSubmitted: (String val) {
+                if (_allowSave) _checkForm();
+                setState(() {
+                  _isEdit = !_isEdit;
+                });
+              },
+            )
+          : Text(category.name),
     );
   }
 
@@ -249,8 +285,39 @@ class _CategoryCardState extends State<CategoryCard> {
                 ),
               ],
             )
-          : null,
+          : _allowDelete
+              ? Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => _confirmToRemove(),
+                        )
+                      ],
+                    ),
+                  ],
+                )
+              : null,
     );
+  }
+
+  Future<void> _removeIt() async {
+    String name = widget.category.name;
+    var result = await db.removeByKey('categories', widget.category.key);
+
+    if (result == 'ok') {
+      snackbarMessageKey(widget.scaffoldKey,
+          'Category - $name was deleted successfully.', app_color, 3);
+    } else {
+      snackbarMessageKey(widget.scaffoldKey, 'Error - $result.', app_color, 3);
+    }
+  }
+
+  void _confirmToRemove() async {
+    await warningDialog(context, _removeIt,
+        content: 'Please, Comfirm the category "${widget.category.name}" - should be removed!!!', button: 'Remove');
   }
 
   void _newSubCategory(Category category) async {
@@ -268,12 +335,8 @@ class _CategoryCardState extends State<CategoryCard> {
             ? IconButton(
                 icon: Icon(Icons.clear),
                 onPressed: () {
+                  _updateVars();
                   setState(() {
-                    _name.text = category.name;
-                    _image = category.image;
-                    _imageMode = _image != null && _image.isNotEmpty
-                        ? ImageMode.Network
-                        : ImageMode.None;
                     _isEdit = !_isEdit;
                   });
                 },
@@ -283,7 +346,10 @@ class _CategoryCardState extends State<CategoryCard> {
             icon: Icon(_isEdit ? Icons.save : Icons.edit),
             onPressed: !_isEdit || (_isEdit && _allowSave)
                 ? () {
-                    if (_isEdit) _checkForm();
+                    if (_isEdit)
+                      _checkForm();
+                    else
+                      _updateVars();
                     setState(() {
                       _isEdit = !_isEdit;
                     });
@@ -295,17 +361,16 @@ class _CategoryCardState extends State<CategoryCard> {
                 icon: Icon(Icons.add_circle_outline),
                 onPressed: () {
                   _newSubCategory(category);
-                  debugPrint(category.name);
                 },
               ),
-        _isEdit
-            ? null
-            : IconButton(
-                icon: Icon(Icons.fast_forward),
-                onPressed: () {
-                  showSubCatOrItem(context, category);
-                },
-              ),
+        // _isEdit
+        //     ? null
+        //     : IconButton(
+        //         icon: Icon(Icons.fast_forward),
+        //         onPressed: () {
+        //           showSubCatOrItem(context, category);
+        //         },
+        //       ),
       ],
     );
   }

@@ -13,6 +13,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:oz/modules/stock/item.dart';
 import 'package:oz/modules/stock/new_item.dart';
+import 'package:oz/helpers/barcode_scaner.dart';
 
 class StockList extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -45,6 +46,14 @@ class _StockListState extends State<StockList> {
   Widget build(BuildContext context) {
     return FirebaseAnimatedList(
         query: _query,
+        sort: (a, b) => a.value['name'].compareTo(b.value['name']),
+        padding: EdgeInsets.all(8.0),
+        defaultChild: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(app_color),
+            strokeWidth: 2.0,
+          ),
+        ),
         itemBuilder: (BuildContext context, DataSnapshot snaphot,
             Animation<double> animation, int index) {
           if (widget.filtered[index]) {
@@ -78,6 +87,10 @@ class _ItemCardState extends State<ItemCard> {
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   final FirebaseStorage _storage = new FirebaseStorage();
   TextEditingController _name = TextEditingController();
+  TextEditingController _barcode = TextEditingController();
+  int _amount;
+  double _price;
+
   String _image;
   File _imageFile;
   ImageMode _imageMode = ImageMode.None;
@@ -89,42 +102,76 @@ class _ItemCardState extends State<ItemCard> {
   void initState() {
     super.initState();
     _ref = _storage.ref();
+
     _name.addListener(_checkToSave);
     _name.text = widget.item.name;
+
+    _barcode.addListener(_checkToSave);
+    _barcode.text = widget.item.barcode;
+
+    _amount = widget.item.amount;
+    _price = widget.item.price;
+
     _image = widget.item.image;
     _imageMode = _image != null && _image.isNotEmpty
         ? ImageMode.Network
         : ImageMode.None;
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    _name.dispose();
+    _barcode.dispose();
+  }
+
   void _checkToSave() {
     setState(() {
       _allowSave = _name.text.isNotEmpty && _name.text != widget.item.name;
+      if (!_allowSave &&
+          _barcode.text.isNotEmpty &&
+          _barcode.text != widget.item.barcode) _allowSave = true;
+      if (!_allowSave && _amount != widget.item.amount) _allowSave = true;
+      if (!_allowSave && _price != widget.item.price) _allowSave = true;
     });
   }
 
   Widget _buildTiles(Item item) {
     return Container(
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+        _buildImage(),
+        _isEdit
+            ? _buildImageButtons(item)
+            : SizedBox(
+                width: 10.0,
+              ),
+        Expanded(
+          child: _buildForm(item),
+        ),
+        _buildPriceInfo(item),
+        _buildButtons(item),
+      ]),
+    );
+  }
+
+  Widget _buildPriceInfo(Item item) {
+    return Container(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
-          _buildImage(),
-          Container(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: CircleAvatar(
-                    backgroundColor: app_color,
-                    child: Text('${item.name[0].toUpperCase()}'),
-                  ),
-                ),
-                Expanded(
-                  child: _buildForm(item),
-                ),
-                _buildButtons(item),
-              ],
-            ),
+          Text('Amount'),
+          Text(
+            '$_amount',
+            style: TextStyle(fontSize: 18.0, color: app_color),
+          ),
+          Padding(
+            child: Text('Price'),
+            padding: EdgeInsets.only(top: 10.0),
+          ),
+          Text(
+            '\$${_price.toStringAsFixed(2)}',
+            style: TextStyle(
+                fontSize: 18.0, color: app_color, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -134,21 +181,79 @@ class _ItemCardState extends State<ItemCard> {
   Widget _buildForm(Item item) {
     return Form(
       key: _formkey,
-      child: TextFormField(
-        enabled: _isEdit,
-        autovalidate: true,
-        controller: _name,
-        decoration: InputDecoration(
-            contentPadding: EdgeInsets.all(5.0),
-            hintText: 'Item name',
-            border: _isEdit ? null : InputBorder.none),
-        validator: (val) => val.isNotEmpty ? null : 'name cannot be empty',
-        onFieldSubmitted: (String val) {
-          if (_allowSave) _checkForm();
-          setState(() {
-            _isEdit = !_isEdit;
-          });
-        },
+      child: Container(
+        padding: EdgeInsets.all(10.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            TextFormField(
+              enabled: _isEdit,
+              autovalidate: true,
+              controller: _name,
+              decoration: InputDecoration(
+                  contentPadding: EdgeInsets.all(5.0),
+                  hintText: 'Item name',
+                  border: _isEdit ? null : InputBorder.none),
+              validator: (val) =>
+                  val.isNotEmpty ? null : 'name cannot be empty',
+              onFieldSubmitted: (String val) {
+                if (_allowSave) _checkForm();
+                setState(() {
+                  _isEdit = !_isEdit;
+                });
+              },
+            ),
+            _isEdit
+                ? SizedBox(
+                    height: 100.0,
+                    child: Slider(
+                      value: _amount.toDouble(),
+                      min: 0,
+                      max: 100,
+                      activeColor: app_color,
+                      onChanged: (double val) {
+                        setState(() {
+                          _amount = val.toInt();
+                        });
+                        _checkToSave();
+                      },
+                    ),
+                  )
+                : Container(),
+            _isEdit
+                ? Slider(
+                    value: _price,
+                    min: 0,
+                    max: 300,
+                    activeColor: app_color,
+                    onChanged: (double val) {
+                      setState(() {
+                        _price = val;
+                      });
+                      _checkToSave();
+                    },
+                  )
+                : Container(),
+            _isEdit
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      OutlineButton(
+                        child: Text("Scan barcode"),
+                        onPressed: () async {
+                          var barcode = await barcodeScan();
+                          setState(() {
+                            _barcode.text = barcode;
+                            _checkToSave();
+                          });
+                        },
+                      ),
+                    ],
+                  )
+                : Text(_barcode.text),
+          ],
+        ),
       ),
     );
   }
@@ -156,13 +261,20 @@ class _ItemCardState extends State<ItemCard> {
   Future<void> _saveIt() async {
     var result = 'ok';
     Item item = widget.item;
-    String image;
     if (_name.text != null && _name.text != item.name)
       result =
           await db.updateValue('stock', item.key, "name", _name.text.trim());
-    if (_imageFile != null) image = await _uploadImage(_imageFile, item.key);
+    if (_barcode.text != null && _barcode.text != item.barcode)
+      result = await db.updateValue(
+          'stock', item.key, "barcode", _barcode.text.trim());
+    if (_amount != null && _amount != item.amount)
+      result = await db.updateValue('stock', item.key, "amount", _amount);
+    if (_price != null && _price != item.price)
+      result = await db.updateValue('stock', item.key, "price", _price * 100);
+
+    if (_imageFile != null) _image = await _uploadImage(_imageFile, item.key);
     if (_image != item.image)
-      result = await db.updateValue('stock', item.key, "image", image);
+      result = await db.updateValue('stock', item.key, "image", _image);
 
     if (result == 'ok') {
       snackbarMessageKey(widget.scaffoldKey,
@@ -170,7 +282,6 @@ class _ItemCardState extends State<ItemCard> {
     } else {
       snackbarMessageKey(widget.scaffoldKey, 'Error - $result.', app_color, 3);
     }
-    // Navigator.of(context).pop();
   }
 
   void _checkForm() async {
@@ -207,77 +318,85 @@ class _ItemCardState extends State<ItemCard> {
   }
 
   Widget _buildImage() {
-    return Container(
-      height: 150,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        image: DecorationImage(
-          image: _imageMode == ImageMode.None
-              ? AssetImage('assets/images/not-available.png')
-              : _imageMode == ImageMode.Asset
-                  ? FileImage(_imageFile)
-                  : NetworkImage(_image),
-          fit: BoxFit.contain,
+    return Image(
+      image: _imageMode == ImageMode.None
+          ? AssetImage('assets/images/not-available.png')
+          : _imageMode == ImageMode.Asset
+              ? FileImage(_imageFile)
+              : NetworkImage(_image),
+      fit: BoxFit.contain,
+      width: 130,
+    );
+  }
+
+  Widget _buildImageButtons(Item item) {
+    return Column(
+      children: <Widget>[
+        IconButton(
+            icon: Icon(Icons.clear),
+            onPressed: _imageMode == ImageMode.None
+                ? null
+                : () {
+                    setState(() {
+                      _image = null;
+                      _allowSave = true;
+                      _imageMode = ImageMode.None;
+                    });
+                  }),
+        IconButton(
+          icon: Icon(FontAwesomeIcons.images),
+          onPressed: () => _getImage(ImageSource.gallery),
         ),
-      ),
-      child: _isEdit
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                OutlineButton(
-                    child: Icon(FontAwesomeIcons.camera),
-                    onPressed: () => _getImage(ImageSource.camera)),
-                RaisedButton(
-                    child: Text('Clear'),
-                    onPressed: _imageMode == ImageMode.None
-                        ? null
-                        : () {
-                            setState(() {
-                              _image = null;
-                              _allowSave = true;
-                              _imageMode = ImageMode.None;
-                            });
-                          }),
-                OutlineButton(
-                  child: Icon(FontAwesomeIcons.images),
-                  onPressed: () => _getImage(ImageSource.gallery),
-                ),
-              ],
-            )
-          : null,
+        IconButton(
+            icon: Icon(FontAwesomeIcons.camera),
+            onPressed: () => _getImage(ImageSource.camera)),
+      ],
     );
   }
 
   Widget _buildButtons(Item item) {
-    return ButtonBar(
-      children: <Widget>[
-        _isEdit
-            ? IconButton(
-                icon: Icon(Icons.clear),
-                onPressed: () {
-                  setState(() {
-                    _name.text = item.name;
-                    _image = item.image;
-                    _imageMode = _image != null && _image.isNotEmpty
-                        ? ImageMode.Network
-                        : ImageMode.None;
-                    _isEdit = !_isEdit;
-                  });
-                },
-              )
-            : null,
-        IconButton(
-            icon: Icon(_isEdit ? Icons.save : Icons.edit),
-            onPressed: !_isEdit || (_isEdit && _allowSave)
-                ? () {
-                    if (_isEdit) _checkForm();
+    return Container(
+      child: Row(
+        children: <Widget>[
+          _isEdit
+              ? Column(
+                  children: <Widget>[
+                    _isEdit
+                        ? IconButton(
+                            icon: Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _name.text = item.name;
+                                _barcode.text = item.barcode;
+                                _amount = item.amount;
+                                _price = item.price;
+                                _isEdit = !_isEdit;
+                              });
+                            },
+                          )
+                        : null,
+                    IconButton(
+                        icon: Icon(_isEdit ? Icons.save : Icons.edit),
+                        onPressed: !_isEdit || (_isEdit && _allowSave)
+                            ? () {
+                                if (_isEdit) _checkForm();
+                                setState(() {
+                                  _isEdit = !_isEdit;
+                                });
+                              }
+                            : null),
+                  ],
+                )
+              : IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () {
                     setState(() {
                       _isEdit = !_isEdit;
                     });
-                  }
-                : null),
-      ],
+                  },
+                ),
+        ],
+      ),
     );
   }
 

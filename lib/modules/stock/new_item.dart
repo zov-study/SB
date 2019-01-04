@@ -18,7 +18,8 @@ class NewItemForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   final Category category;
   final title;
-  NewItemForm(this.scaffoldKey, this.title, [this.category]);
+  final Item item;
+  NewItemForm(this.scaffoldKey, this.title, [this.category, this.item]);
   _NewItemFormState createState() => _NewItemFormState();
 }
 
@@ -30,6 +31,7 @@ class _NewItemFormState extends State<NewItemForm> {
   StorageReference _ref;
   ImageMode _imageMode = ImageMode.None;
   File _imageFile;
+  bool _isEditMode = false;
 
   FocusNode _itemName = FocusNode();
   FocusNode _itemAmount = FocusNode();
@@ -38,12 +40,19 @@ class _NewItemFormState extends State<NewItemForm> {
 
   Future<void> _saveIt() async {
     var result;
-    _item.category = widget.category.key;
     if (_imageFile != null) _item.image = await _uploadImage(_imageFile);
-    result = await db.createRecord('stock', _item.toJson());
+    if (_isEditMode) {
+      result = await db.updateRecord('stock', _item.key, _item.toJson());
+    } else {
+      _item.category = widget.category.key;
+      result = await db.createRecord('stock', _item.toJson());
+    }
     if (result == 'ok') {
-      snackbarMessageKey(widget.scaffoldKey,
-          'Item - ${_item.name} created successfully.', app_color, 3);
+      snackbarMessageKey(
+          widget.scaffoldKey,
+          'Item - ${_item.name} ${_isEditMode ? 'updated' : 'created'} successfully.',
+          app_color,
+          3);
     } else {
       snackbarMessageKey(widget.scaffoldKey, 'Error - $result.', app_color, 3);
     }
@@ -55,7 +64,9 @@ class _NewItemFormState extends State<NewItemForm> {
     if (form.validate()) {
       form.save();
       await warningDialog(context, _saveIt,
-          content: 'Please, Confirm to create new item!!!', button: 'Create');
+          content:
+              'Please, Confirm to ${_isEditMode ? 'update' : 'create new'} item!!!',
+          button: _isEditMode ? 'Update' : 'Create');
     }
   }
 
@@ -77,6 +88,17 @@ class _NewItemFormState extends State<NewItemForm> {
   void initState() {
     super.initState();
     _ref = _storage.ref();
+    _isEditMode = widget.item != null && widget.item.name.isNotEmpty;
+    if (_isEditMode) {
+      _item.key = widget.item.key;
+      _item.category = widget.item.category;
+      _item.name = widget.item.name;
+      _item.itemkey = widget.item.itemkey;
+      _item.amount = widget.item.amount;
+      _item.price = widget.item.price;
+      _item.barcode = widget.item.barcode;
+      _item.storage = widget.item.storage;
+    }
   }
 
   @override
@@ -140,7 +162,7 @@ class _NewItemFormState extends State<NewItemForm> {
                       labelText: 'Amount',
                       icon: Icon(Icons.code),
                     ),
-                    onSaved: (String val) => _item.amount =  int.tryParse(val) ,
+                    onSaved: (String val) => _item.amount = int.tryParse(val),
                     validator: (val) =>
                         val.isNotEmpty ? null : 'Item amount cannot be empty',
                     initialValue: _item.amount.toStringAsFixed(0),

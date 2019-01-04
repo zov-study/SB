@@ -48,9 +48,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 
   void _categoryChanged(Event event) {
-    var old = categories.singleWhere((entry) {
-      return entry.key == event.snapshot.key;
-    });
+    var old =
+        categories.singleWhere((entry) => entry.key == event.snapshot.key);
     setState(() {
       categories[categories.indexOf(old)] =
           Category.fromSnapshot(event.snapshot);
@@ -58,15 +57,12 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 
   void _categoryRemoved(Event event) async {
-    var old = categories.singleWhere((entry) {
-      return entry.key == event.snapshot.key;
-    });
+    var old =
+        categories.singleWhere((entry) => entry.key == event.snapshot.key);
 
     if (categories.length == 1 && old.level > 0) {
-      if (old.parent != null &&
-          old.parent.isNotEmpty)
-        await db.updateValue(
-            'categories', old.parent, 'subcategory', false);
+      if (old.parent != null && old.parent.isNotEmpty)
+        await db.updateValue('categories', old.parent, 'subcategory', false);
       Navigator.of(context).pop();
     }
   }

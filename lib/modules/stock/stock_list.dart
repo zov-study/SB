@@ -42,6 +42,14 @@ class _StockListState extends State<StockList> {
           .equalTo(widget.category.key);
   }
 
+  void _editItem(Item item) async {
+    await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) =>
+            NewItemForm(widget.scaffoldKey, 'New Item', widget.category, item));
+  }
+
   @override
   Widget build(BuildContext context) {
     return FirebaseAnimatedList(
@@ -54,15 +62,18 @@ class _StockListState extends State<StockList> {
             strokeWidth: 2.0,
           ),
         ),
-        itemBuilder: (BuildContext context, DataSnapshot snaphot,
+        itemBuilder: (BuildContext context, DataSnapshot snapshot,
             Animation<double> animation, int index) {
           if (widget.filtered[index]) {
-            return Card(
-              child: GestureDetector(
-                onLongPress: () {
-                  debugPrint('Long press to ${widget.stock[index].name}!!!');
-                },
-                onTap: () => print(widget.stock[index]),
+            return GestureDetector(
+              onLongPress: () {
+                debugPrint('Long press to ${widget.stock[index].name}!!!');
+              },
+              onDoubleTap: () {
+                _editItem(widget.stock[index]);
+              },
+              onTap: () => print(widget.stock[index]),
+              child: Card(
                 child: ItemCard(widget.stock[index], widget.scaffoldKey),
               ),
             );

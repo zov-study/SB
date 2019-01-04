@@ -55,16 +55,16 @@ class _CategoriesListState extends State<CategoriesList> {
         ),
         itemBuilder: (BuildContext context, DataSnapshot snapshot,
             Animation<double> animation, int index) {
-          var category = Category.fromSnapshot(snapshot);
-          print('${category.name}-${widget.categories[index].name}=$index');
-          widget.categories[index] = category;
+          // var category = Category.fromSnapshot(snapshot);
+          // print('${category.name}-${widget.categories[index].name}=$index');
+          // widget.categories[index] = category;
           if (index < widget.filtered.length && widget.filtered[index]) {
             return Card(
               child: GestureDetector(
-                onLongPress: () {
-                  debugPrint(
-                      'Long press to ${widget.categories[index].name}!!!');
-                },
+                // onLongPress: () {
+                //   debugPrint(
+                //       'Long press to ${widget.categories[index].name}!!!');
+                // },
                 onTap: () =>
                     showSubCatOrItem(context, widget.categories[index]),
                 child:
@@ -363,14 +363,6 @@ class _CategoryCardState extends State<CategoryCard> {
                   _newSubCategory(category);
                 },
               ),
-        // _isEdit
-        //     ? null
-        //     : IconButton(
-        //         icon: Icon(Icons.fast_forward),
-        //         onPressed: () {
-        //           showSubCatOrItem(context, category);
-        //         },
-        //       ),
       ],
     );
   }

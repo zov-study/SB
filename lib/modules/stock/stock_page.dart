@@ -133,13 +133,9 @@ class _StockPageState extends State<StockPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: searchBar.build(context),
-      body: found == -1
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : found > 0
-              ? StockList(_scaffoldKey, widget.category, stock, filtered)
-              : notFound(),
+      body: found > 0
+          ? StockList(_scaffoldKey, widget.category, stock, filtered)
+          : notFound(),
       floatingActionButton: widget.category != null
           ? FloatingActionButton(
               backgroundColor: app_color,

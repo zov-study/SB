@@ -91,8 +91,9 @@ class _NewItemFormState extends State<NewItemForm> {
     _isEditMode = widget.item != null && widget.item.name.isNotEmpty;
     if (_isEditMode) {
       _item.key = widget.item.key;
-      _item.category = widget.item.category;
       _item.name = widget.item.name;
+      _item.alpha = widget.item.alpha;
+      _item.category = widget.item.category;
       _item.itemkey = widget.item.itemkey;
       _item.amount = widget.item.amount;
       _item.price = widget.item.price;

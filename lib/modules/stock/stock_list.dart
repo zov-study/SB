@@ -66,13 +66,9 @@ class _StockListState extends State<StockList> {
             Animation<double> animation, int index) {
           if (widget.filtered[index]) {
             return GestureDetector(
-              onLongPress: () {
-                debugPrint('Long press to ${widget.stock[index].name}!!!');
-              },
               onDoubleTap: () {
                 _editItem(widget.stock[index]);
               },
-              onTap: () => print(widget.stock[index]),
               child: Card(
                 child: ItemCard(widget.stock[index], widget.scaffoldKey),
               ),

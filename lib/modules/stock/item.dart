@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 class Item {
   String key;
   String name;
+  String alpha;
   String category;
   String image;
   String barcode;
@@ -14,6 +15,7 @@ class Item {
   Item([
     this.key = '',
     this.name = '',
+    this.alpha = '',
     this.category = '',
     this.image = '',
     this.barcode = '',
@@ -26,6 +28,7 @@ class Item {
   Item.fromSnapshot(DataSnapshot snapshot)
       : key = snapshot.key,
         name = snapshot.value['name'],
+        alpha = snapshot.value['alfa'],
         category = snapshot.value['category'],
         image = snapshot.value['image'],
         barcode = snapshot.value['barcode'],
@@ -37,6 +40,7 @@ class Item {
   Item.fromMapEntry(MapEntry snapshot)
       : key = snapshot.key,
         name = snapshot.value['name'],
+        alpha = snapshot.value['alfa'],
         category = snapshot.value['category'],
         image = snapshot.value['image'],
         barcode = snapshot.value['barcode'],
@@ -48,6 +52,7 @@ class Item {
   toJson() {
     return {
       "name": name,
+      "alpha": name[0].toUpperCase(),
       "category": category,
       "image": image,
       "barcode": barcode,

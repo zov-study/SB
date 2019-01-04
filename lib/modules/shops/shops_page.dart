@@ -64,6 +64,11 @@ class _ShopsPageState extends State<ShopsPage> {
                 }),
               )
             : Container(),
+        IconButton(
+          icon: Icon(Icons.add_circle),
+          tooltip: 'New shop',
+          onPressed: () => _newShop(),
+        ),
       ],
       backgroundColor: app_color,
     );
@@ -96,7 +101,6 @@ class _ShopsPageState extends State<ShopsPage> {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) => NewShopForm(_scaffoldKey));
-    // onSubmitted('');
   }
 
   @override
@@ -109,12 +113,6 @@ class _ShopsPageState extends State<ShopsPage> {
               child: CircularProgressIndicator(),
             )
           : found > 0 ? ShopsList(_scaffoldKey, shops, filtered) : notFound(),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: app_color,
-        child: Icon(Icons.add),
-        tooltip: 'New Shop.',
-        onPressed: () => _newShop(),
-      ),
     );
   }
 }

@@ -83,6 +83,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 }),
               )
             : Container(),
+        IconButton(
+          icon: Icon(Icons.add_circle),
+          tooltip: 'New category',
+          onPressed: () => _newCategory(),
+        ),
       ],
       backgroundColor: app_color,
     );
@@ -130,12 +135,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
           : found > 0
               ? CategoriesList(_scaffoldKey, categories, filtered)
               : notFound(),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: app_color,
-        child: Icon(Icons.add),
-        tooltip: 'New Category.',
-        onPressed: () => _newCategory(),
-      ),
     );
   }
 }

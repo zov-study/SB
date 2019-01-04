@@ -75,11 +75,19 @@ class _StockPageState extends State<StockPage> {
         ),
         found == 0
             ? IconButton(
-                icon: Icon(Icons.close),
+                icon: Icon(Icons.clear),
                 color: Colors.white,
+                tooltip: "Clear filter",
                 onPressed: () {
                   onSubmitted('');
                 },
+              )
+            : Container(),
+        widget.category != null
+            ? IconButton(
+                icon: Icon(Icons.add_circle),
+                tooltip: 'New item',
+                onPressed: () => _newItem(),
               )
             : Container(),
       ],
@@ -136,14 +144,6 @@ class _StockPageState extends State<StockPage> {
       body: found > 0
           ? StockList(_scaffoldKey, widget.category, stock, filtered)
           : notFound(),
-      floatingActionButton: widget.category != null
-          ? FloatingActionButton(
-              backgroundColor: app_color,
-              child: Icon(Icons.add),
-              tooltip: 'New Item.',
-              onPressed: () => _newItem(),
-            )
-          : null,
     );
   }
 }

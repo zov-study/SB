@@ -24,11 +24,6 @@ class _ShopsListState extends State<ShopsList> {
   void _editIt(Shop shop) {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => ShopTabs(shop: shop)));
-    // await showDialog(
-    //     context: context,
-    //     barrierDismissible: false,
-    //     builder: (BuildContext context) =>
-    //         ShopEditForm(widget.scaffoldKey, shop));
   }
 
   void _allowDisable(Shop shop, bool active) async {
@@ -41,8 +36,8 @@ class _ShopsListState extends State<ShopsList> {
         shop.active = lastValue;
       });
     } else {
-       await db.updateValue('shops', shop.key, 'active', active);
-       await db.updateValue('shops', shop.key, 'closeDate',
+      await db.updateValue('shops', shop.key, 'active', active);
+      await db.updateValue('shops', shop.key, 'closeDate',
           active ? 0 : DateTime.now().millisecondsSinceEpoch);
       setState(() {
         shop.active = active;
@@ -60,28 +55,26 @@ class _ShopsListState extends State<ShopsList> {
           itemBuilder: (BuildContext context, DataSnapshot snaphot,
               Animation<double> animation, int index) {
             if (widget.filtered[index]) {
-              return Card(
-                child: GestureDetector(
-                  onLongPress: () {
-                    debugPrint('Long press to ${widget.shops[index].name}!!!');
-                  },
-                  onDoubleTap: () => _editIt(widget.shops[index]),
+              return GestureDetector(
+                onTap: () => _editIt(widget.shops[index]),
+                child: Card(
                   child: Container(
                     padding: EdgeInsets.all(3.0),
                     child: Column(children: <Widget>[
-                      SwitchListTile(
+                      ListTile(
                         isThreeLine: true,
-                        secondary: CircleAvatar(
+                        leading: CircleAvatar(
                           child: Text(
                               '${widget.shops[index].name[0].toUpperCase()}'),
                           backgroundColor: widget.shops[index].active
                               ? app_color
                               : Colors.blueGrey,
                         ),
+                        trailing: Switch(
                         activeColor: app_color,
                         value: widget.shops[index].active,
                         onChanged: ((bool value) =>
-                            _allowDisable(widget.shops[index], value)),
+                            _allowDisable(widget.shops[index], value))),
                         title: Text(
                           '${widget.shops[index].name} - ${widget.shops[index].location}',
                           style: TextStyle(

@@ -7,12 +7,10 @@ import 'dart:async';
 class DbInstance {
   final FirebaseDatabase _instance = FirebaseDatabase.instance;
   DatabaseReference reference;
-  // final String db;
   final bool offline;
 
   DbInstance({this.offline = true}) {
     _instance.setPersistenceEnabled(offline);
-    // if(this.offline) _instance.goOffline();
     reference = _instance.reference();
   }
 
@@ -123,24 +121,40 @@ class DbInstance {
     return result;
   }
 
-  Future<List> getSubCategory(String value) async {
+  Future<List> getCategoryList([String parent]) async {
     var result;
 
     try {
-      result = await reference
-          .child('categories')
-          .orderByChild('parent')
-          .equalTo(value) //  , key:'parent'
-          .once()
-          .then((DataSnapshot snapshot) {
-        var val = snapshot.value.entries;
-        var lst = new List();
-        val.forEach((f) async {
-          print(f.toString());
-          lst.add(Category.fromMapEntry(f));
+      if (parent == null || parent.isEmpty)
+        result = await reference
+            .child('categories')
+            .orderByChild('level')
+            .equalTo(0) 
+            .once()
+            .then((DataSnapshot snapshot) {
+          var val = snapshot.value.entries;
+          var lst = new List();
+          val.forEach((f) async {
+            print(f.toString());
+            lst.add(Category.fromMapEntry(f));
+          });
+          return lst;
         });
-        return lst;
-      });
+      else
+        result = await reference
+            .child('categories')
+            .orderByChild('parent')
+            .equalTo(parent) 
+            .once()
+            .then((DataSnapshot snapshot) {
+          var val = snapshot.value.entries;
+          var lst = new List();
+          val.forEach((f) async {
+            print(f.toString());
+            lst.add(Category.fromMapEntry(f));
+          });
+          return lst;
+        });
     } catch (e) {
       print(e);
     }
@@ -154,7 +168,7 @@ class DbInstance {
       result = await reference
           .child('stock')
           .orderByChild('category')
-          .equalTo(value) //  , key:'parent'
+          .equalTo(value) 
           .once()
           .then((DataSnapshot snapshot) {
         var val = snapshot.value.entries;
@@ -171,4 +185,34 @@ class DbInstance {
     return result;
   }
 
+  Future<List> getItemsByAlpha(String value) async {
+    var result;
+
+    try {
+      result = await reference
+          .child('stock')
+          .orderByChild('alpha')
+          .equalTo(value) 
+          .once()
+          .then((DataSnapshot snapshot) {
+        var val = snapshot.value.entries;
+        var lst = new List();
+        val.forEach((f) async {
+          print(f.toString());
+          lst.add(Item.fromMapEntry(f));
+        });
+        return lst;
+      });
+    } catch (e) {
+      print(e);
+    }
+    return result;
+  }
 }
+
+
+
+
+
+
+

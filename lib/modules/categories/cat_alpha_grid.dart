@@ -23,7 +23,6 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
   final db = DbInstance();
   List cat = new List();
   List stock = new List();
-  List qqq = List<int>.generate(7, (int index)=>index);
   String parent;
   int level = 0;
   bool subcat;
@@ -31,9 +30,8 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
   @override
   void initState() {
     super.initState();
-    subcat = false;
-    // _fillCategoriesList();
-    // _fillStock('-LTzmjdGG9wYZgGrXDKP');
+    subcat = true;
+    _fillCategoriesList();
   }
 
   void _fillCategoriesList([String parentkey]) async {
@@ -43,11 +41,13 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
       lst.sort((a, b) => a.name.compareTo(b.name));
       setState(() {
         cat = lst;
+        subcat = true;
         level = lst[0].level;
       });
     } else {
       setState(() {
         cat = new List();
+        subcat = false;
         level = 0;
         parent = null;
       });
@@ -61,7 +61,7 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
       lst.sort((a, b) => a.name.compareTo(b.name));
       setState(() {
         stock = lst;
-        subcat=false;
+        subcat = false;
       });
     } else {
       setState(() {
@@ -85,6 +85,7 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
               setState(() {
                 _toggleMode = Toggle.category;
               });
+              _fillCategoriesList();
             },
           )),
           Expanded(
@@ -106,18 +107,18 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
 
   Widget _buildStock() {
     return ListView.builder(
-        itemCount: qqq.length,
+        itemCount: stock.length,
         itemBuilder: (BuildContext context, int index) {
-          ListTile(
+          return ListTile(
             leading: CircleAvatar(
-              child: Text('$index'),
+              child: Text(stock[index].name[0]),
             ),
-            title: Text('Item - ${qqq[index]}stock[index].name'),
+            title: Text('${stock[index].name}'),
           );
         });
   }
 
-  Widget _buildGrid() {
+  Widget _buildCats() {
     return GridView.builder(
         gridDelegate:
             SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
@@ -128,13 +129,19 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
           return GestureDetector(
             onTap: () {
               setState(() {
-                parent = cat[index].parent;
                 subcat = cat[index].subcategory ?? false;
               });
-              if (subcat)
+              if (subcat) {
+                setState(() {
+                  parent = cat[index].parent;
+                });
                 _fillCategoriesList(cat[index].key);
-              else
+              } else{
+                setState(() {
+                  level = cat[index].level+1;
+                });
                 _fillStock(cat[index].key);
+                }
             },
             child: Card(
               child: Column(
@@ -164,7 +171,7 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
             child: Container(
               padding: EdgeInsets.all(10),
               child: Card(
-                child: subcat ? _buildGrid() : _buildStock(),
+                child: subcat ? _buildCats() : _buildStock(),
               ),
             ),
           ),

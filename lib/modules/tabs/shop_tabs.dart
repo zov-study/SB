@@ -35,7 +35,7 @@ class _ShopTabsState extends State<ShopTabs> {
         body: TabBarView(
           children: [
             Icon(Icons.shopping_basket),
-            CatAlfaGrid(_scaffoldKey, widget.shop),
+            CatAlphaGrid(_scaffoldKey, widget.shop),
             ShopEditForm(_scaffoldKey, widget.shop),
           ],
         ),

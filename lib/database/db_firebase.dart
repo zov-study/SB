@@ -129,7 +129,7 @@ class DbInstance {
         result = await reference
             .child('categories')
             .orderByChild('level')
-            .equalTo(0) 
+            .equalTo(0)
             .once()
             .then((DataSnapshot snapshot) {
           var val = snapshot.value.entries;
@@ -144,7 +144,7 @@ class DbInstance {
         result = await reference
             .child('categories')
             .orderByChild('parent')
-            .equalTo(parent) 
+            .equalTo(parent)
             .once()
             .then((DataSnapshot snapshot) {
           var val = snapshot.value.entries;
@@ -161,6 +161,30 @@ class DbInstance {
     return result;
   }
 
+  Future<List> getCategoryListByLevel([int level]) async {
+    var result;
+
+    try {
+      result = await reference
+          .child('categories')
+          .orderByChild('level')
+          .equalTo(level ?? 0)
+          .once()
+          .then((DataSnapshot snapshot) {
+        var val = snapshot.value.entries;
+        var lst = new List();
+        val.forEach((f) async {
+          print(f.toString());
+          lst.add(Category.fromMapEntry(f));
+        });
+        return lst;
+      });
+    } catch (e) {
+      print(e);
+    }
+    return result;
+  }
+
   Future<List> getItemsByKey(String value) async {
     var result;
 
@@ -168,7 +192,7 @@ class DbInstance {
       result = await reference
           .child('stock')
           .orderByChild('category')
-          .equalTo(value) 
+          .equalTo(value)
           .once()
           .then((DataSnapshot snapshot) {
         var val = snapshot.value.entries;
@@ -192,7 +216,7 @@ class DbInstance {
       result = await reference
           .child('stock')
           .orderByChild('alpha')
-          .equalTo(value) 
+          .equalTo(value)
           .once()
           .then((DataSnapshot snapshot) {
         var val = snapshot.value.entries;
@@ -209,10 +233,3 @@ class DbInstance {
     return result;
   }
 }
-
-
-
-
-
-
-

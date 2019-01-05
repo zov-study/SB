@@ -378,5 +378,5 @@ void showSubCatOrItem(BuildContext context, Category category) {
         context,
         MaterialPageRoute(
             builder: (context) =>
-                StockPage(title: category.name, category: category)));
+                StockPage(title: '${category.name} - STOCK', category: category)));
 }

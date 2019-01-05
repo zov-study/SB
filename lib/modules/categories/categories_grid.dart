@@ -29,12 +29,14 @@ class _CategoriesGridState extends State<CategoriesGrid> {
   }
 
   Future<void> _listFillUp(String parent) async {
-    var lst = await db.getCategoryList(parent);
+    List lst = await db.getCategoryList(parent);
     if (lst != null && lst.isNotEmpty) {
       lst.sort((a, b) => a.name.compareTo(b.name));
-      lst.forEach((f) => filtered.add(true));
-      setState(() {
-        categories = lst;
+      lst.forEach((f) {
+        setState(() {
+          categories.add(f);
+          filtered.add(true);
+        });
       });
     }
   }

@@ -8,6 +8,8 @@ class Sale {
   String shopdate;
   String shopmonthyear;
   String shopyear;
+  String itemname;
+  String itemimage;
   String itemdate;
   String itemmonthyear;
   String itemyear;
@@ -22,6 +24,8 @@ class Sale {
     this.shopdate = '',
     this.shopmonthyear = '',
     this.shopyear = '',
+    this.itemname = '',
+    this.itemimage = '',
     this.itemdate = '',
     this.itemmonthyear = '',
     this.itemyear = '',
@@ -36,6 +40,8 @@ class Sale {
         shopmonthyear = snapshot.value['shopmonthyear'],
         shopyear = snapshot.value['shopyear'],
         item = snapshot.value['item'],
+        itemname = snapshot.value['itemname'],
+        itemimage = snapshot.value['itemimage'],
         itemdate = snapshot.value['itemdate'],
         itemmonthyear = snapshot.value['itemmonthyear'],
         itemyear = snapshot.value['itemyear'],
@@ -50,6 +56,8 @@ class Sale {
         shopmonthyear = snapshot.value['shopmonthyear'],
         shopyear = snapshot.value['shopyear'],
         item = snapshot.value['item'],
+        itemname = snapshot.value['itemname'],
+        itemimage = snapshot.value['itemimage'],
         itemdate = snapshot.value['itemdate'],
         itemmonthyear = snapshot.value['itemmonthyear'],
         itemyear = snapshot.value['itemyear'],
@@ -59,14 +67,16 @@ class Sale {
 
   toJson() {
     var _dt = new DateTime.now();
-    var mm = '${_dt.month}'.padLeft(2,'0');
-    var dd = '${_dt.day}'.padLeft(2,'0');
+    var mm = '${_dt.month}'.padLeft(2, '0');
+    var dd = '${_dt.day}'.padLeft(2, '0');
     return {
       "shop": shop,
       "shopdate": '$shop~${_dt.year}$mm$dd',
       "shopmonthyear": '$shop~${_dt.year}$mm',
       "shopyear": '$shop~${_dt.year}',
       "item": item,
+      "itemname": itemname,
+      "itemimage": itemimage,
       "itemdate": '$item~${_dt.year}$mm$dd',
       "itemmonthyear": '$item~${_dt.year}$mm',
       "itemyear": '$item~${_dt.year}',

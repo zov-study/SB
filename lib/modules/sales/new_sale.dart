@@ -28,8 +28,9 @@ class _NewSaleFormState extends State<NewSaleForm> {
   Future<void> _saveIt() async {
     var result;
     var item = widget.item;
-    print(sale.toJson());  
     if (sale != null && sale.amount > 0 && sale.price > 0) {
+      sale.itemname = item.name;
+      sale.itemimage = item.image;
       result = await db.createRecord('sales', sale.toJson());
       if (result == 'ok') {
         if (item.amount - sale.amount > 0)
@@ -80,7 +81,7 @@ class _NewSaleFormState extends State<NewSaleForm> {
           padding: EdgeInsets.all(10),
           decoration: new BoxDecoration(
             shape: BoxShape.rectangle,
-            color: Colors.grey[100], //const Color(0xFFFFFF),
+            color: Colors.grey[100],
             borderRadius: new BorderRadius.all(new Radius.circular(32.0)),
           ),
           width: MediaQuery.of(context).size.width,
@@ -128,7 +129,6 @@ class _NewSaleFormState extends State<NewSaleForm> {
                           warn = "it's more than stock";
                           _amount.text = widget.item.amount.toStringAsFixed(0);
                         }
-                        ;
                         return warn;
                       },
                       keyboardType: TextInputType.numberWithOptions(

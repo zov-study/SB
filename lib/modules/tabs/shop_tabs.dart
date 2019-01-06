@@ -3,6 +3,7 @@ import 'package:oz/settings/config.dart';
 import 'package:oz/modules/shops/shop.dart';
 import 'package:oz/modules/shops/shop_edit.dart';
 import 'package:oz/modules/sales/categ_alpha_sales.dart';
+import 'package:oz/modules/days/daily_sales.dart';
 
 class ShopTabs extends StatefulWidget {
   final Shop shop;
@@ -34,7 +35,7 @@ class _ShopTabsState extends State<ShopTabs> {
         ),
         body: TabBarView(
           children: [
-            Icon(Icons.shopping_basket),
+            DailySales(_scaffoldKey, widget.shop),
             CategAlphaSale(_scaffoldKey, widget.shop),
             ShopEditForm(_scaffoldKey, widget.shop),
           ],

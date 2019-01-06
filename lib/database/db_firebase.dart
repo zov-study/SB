@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:oz/modules/users/user.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:oz/modules/stock/item.dart';
+import 'package:oz/modules/sales/sale.dart';
 import 'dart:async';
 
 class DbInstance {
@@ -55,7 +56,7 @@ class DbInstance {
               .once();
           break;
       }
-      if (res==null || res.value == null) {
+      if (res == null || res.value == null) {
         await reference.child(path).push().set(record);
         result = 'ok';
       } else {
@@ -231,6 +232,50 @@ class DbInstance {
         val.forEach((f) async {
           print(f.toString());
           lst.add(Item.fromMapEntry(f));
+        });
+        return lst;
+      });
+    } catch (e) {
+      print(e);
+    }
+    return result;
+  }
+
+  Future<Item> getItemByKey(String key) async {
+    if (key == null || key.isEmpty) return null;
+    Item item;
+    try {
+      item = await reference
+          .child('stock')
+          .orderByChild('key')
+          .equalTo(key)
+          .once()
+          .then((DataSnapshot snapshot) {
+        MapEntry val = snapshot.value.entries.elementAt(0);
+        print(val);
+        return Item.fromMapEntry(val);
+      });
+    } catch (e) {
+      print(e);
+    }
+    return item;
+  }
+
+  Future<List> getSalesByDate(String shop, String date) async {
+    var result;
+    var key = '$shop~$date';
+    try {
+      result = await reference
+          .child('sales')
+          .orderByChild('shopdate')
+          .equalTo(key)
+          .once()
+          .then((DataSnapshot snapshot) {
+        var val = snapshot.value.entries;
+        var lst = new List();
+        val.forEach((f) async {
+          print(f.toString());
+          lst.add(Sale.fromMapEntry(f));
         });
         return lst;
       });

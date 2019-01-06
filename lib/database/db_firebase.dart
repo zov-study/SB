@@ -47,8 +47,15 @@ class DbInstance {
               .equalTo(record['itemkey'])
               .once();
           break;
+        case 'sales':
+          res = await reference
+              .child(path)
+              .orderByChild('date')
+              .equalTo(record['date'])
+              .once();
+          break;
       }
-      if (res.value == null) {
+      if (res==null || res.value == null) {
         await reference.child(path).push().set(record);
         result = 'ok';
       } else {

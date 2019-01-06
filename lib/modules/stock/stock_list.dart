@@ -236,7 +236,7 @@ class _ItemCardState extends State<ItemCard> {
                     activeColor: app_color,
                     onChanged: (double val) {
                       setState(() {
-                        _price = val;
+                        _price = val.roundToDouble();
                       });
                       _checkToSave();
                     },

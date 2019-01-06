@@ -60,7 +60,13 @@ class _CustomerEditFormState extends State<CustomerEditForm> {
         showDialog(
           context: context,
           builder: (BuildContext context) => AlertDialog(
-                title: Text('ATTENTION!'),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0)),
+                title: Text(
+                  'ATTENTION!',
+                  style: TextStyle(
+                      color: app_color, decoration: TextDecoration.underline),
+                ),
                 content:
                     Text('Please, Switch the delivery method by Email or SMS!'),
                 actions: <Widget>[
@@ -96,6 +102,7 @@ class _CustomerEditFormState extends State<CustomerEditForm> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
       title: Text(
         'EDIT FORM',
         style: TextStyle(
@@ -113,8 +120,9 @@ class _CustomerEditFormState extends State<CustomerEditForm> {
             key: formkey,
             child: Column(
               children: <Widget>[
-                SizedBox(width: MediaQuery.of(context).size.width,),
-
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                ),
                 TextFormField(
                     decoration: InputDecoration(
                       hintText: 'Type your name',

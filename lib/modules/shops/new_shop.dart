@@ -34,7 +34,7 @@ class _NewShopFormState extends State<NewShopForm> {
   FocusNode _shopOpenHours = FocusNode();
   FocusNode _shopContactName = FocusNode();
   FocusNode _shopContactPhone = FocusNode();
-  
+
   Future<void> _saveIt() async {
     var result;
     if (_imageFile != null) shop.image = await _uploadImage(_imageFile);
@@ -95,6 +95,7 @@ class _NewShopFormState extends State<NewShopForm> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
       title: Text(
         'NEW shop',
         style: TextStyle(

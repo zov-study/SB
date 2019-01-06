@@ -3,6 +3,7 @@ import 'package:oz/settings/config.dart';
 
 Widget termsAgreement(Function callback) {
   return AlertDialog(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
     title: Text(
       "Terms and Conditions",
       style: TextStyle(

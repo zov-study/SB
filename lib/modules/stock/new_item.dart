@@ -105,6 +105,7 @@ class _NewItemFormState extends State<NewItemForm> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
       title: Text(
         widget.title,
         style: TextStyle(

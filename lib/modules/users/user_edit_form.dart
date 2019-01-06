@@ -151,6 +151,7 @@ class _UserEditFormState extends State<UserEditForm> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
       title: Text(
         'EDIT FORM',
         style: TextStyle(
@@ -225,7 +226,7 @@ class _UserEditFormState extends State<UserEditForm> {
                 Text('Is account active?'),
                 Switch(
                   value: user.active,
-                  onChanged: (bool val) =>_allowDisable(val),
+                  onChanged: (bool val) => _allowDisable(val),
                 ),
               ]),
         ],

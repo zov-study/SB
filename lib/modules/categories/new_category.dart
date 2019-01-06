@@ -35,7 +35,8 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
     var result;
     var parent = widget.parent;
     if (parent != null) {
-      if (parent.subcategory == null || !parent.subcategory) parent.subcategory = true;
+      if (parent.subcategory == null || !parent.subcategory)
+        parent.subcategory = true;
       if (parent.level == null) parent.level = 0;
       result = await db.updateRecord('categories', parent.key, parent.toJson());
       category.level = parent.level + 1;
@@ -85,6 +86,7 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
       title: Text(
         widget.title,
         style: TextStyle(

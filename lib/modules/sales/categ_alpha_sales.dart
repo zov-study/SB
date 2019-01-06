@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:oz/database/db_firebase.dart';
-import 'package:flutter_search_bar/flutter_search_bar.dart';
+// import 'package:flutter_search_bar/flutter_search_bar.dart';
 import 'package:oz/settings/config.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:oz/helpers/snackbar_message.dart';
+// import 'package:firebase_database/firebase_database.dart';
+// import 'package:oz/helpers/snackbar_message.dart';
 import 'package:oz/helpers/not_found.dart';
 import 'package:oz/modules/shops/shop.dart';
-import 'package:oz/modules/categories/category.dart';
-import 'package:oz/modules/categories/categories_grid.dart';
+import 'package:oz/modules/stock/item.dart';
+import 'package:oz/modules/sales/new_sale.dart';
 
 enum Toggle { category, alpha }
 
-class CatAlphaGrid extends StatefulWidget {
+class CategAlphaSale extends StatefulWidget {
   final Shop shop;
   final GlobalKey<ScaffoldState> scaffoldKey;
-  CatAlphaGrid(this.scaffoldKey, this.shop);
-  _CatAlphaGridState createState() => _CatAlphaGridState();
+  CategAlphaSale(this.scaffoldKey, this.shop);
+  _CategAlphaSaleState createState() => _CategAlphaSaleState();
 }
 
-class _CatAlphaGridState extends State<CatAlphaGrid> {
+class _CategAlphaSaleState extends State<CategAlphaSale> {
   Toggle _toggleMode = Toggle.category;
   final db = DbInstance();
   List cat = new List();
@@ -56,16 +56,17 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
 
   void _fillStock([String parentkey]) async {
     print(this.parent);
+    setState(() {
+      stock = new List();
+    });
     var lst = await db.getItemsByKey(parentkey);
     if (lst != null && lst.isNotEmpty) {
       lst.sort((a, b) => a.name.compareTo(b.name));
       setState(() {
-        stock = lst;
+        lst.forEach((f) {
+          if (f.amount > 0) stock.add(f);
+        });
         subcat = false;
-      });
-    } else {
-      setState(() {
-        stock = new List();
       });
     }
   }
@@ -106,19 +107,128 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
   }
 
   Widget _buildStock() {
-    return ListView.builder(
-        itemCount: stock.length,
-        itemBuilder: (BuildContext context, int index) {
-          return ListTile(
-            leading: CircleAvatar(
-              child: Text(stock[index].name[0]),
-            ),
-            title: Text('${stock[index].name}'),
-          );
-        });
+    return stock.length > 0
+        ? ListView.builder(
+            itemCount: stock.length,
+            itemBuilder: (BuildContext context, int index) {
+              return Card(
+                child: _buildStockCard(stock[index]),
+                color: index % 2 == 0 ? Colors.white : Colors.grey[50],
+              );
+            })
+        : notFound();
   }
 
-  Widget _buildCats() {
+  Widget _buildStockCard(Item item) {
+    return Container(
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+        _buildImage(item),
+        SizedBox(
+          width: 10.0,
+        ),
+        Expanded(
+          child: _buildForm(item),
+        ),
+        _buildPriceInfo(item),
+        _buildButtons(item),
+      ]),
+    );
+  }
+
+  Widget _buildImage(Item item) {
+    return Image(
+      image: item.image == null || item.image.isEmpty
+          ? AssetImage('assets/images/not-available.png')
+          : NetworkImage(item.image),
+      fit: BoxFit.contain,
+      width: 110,
+    );
+  }
+
+  Widget _buildForm(Item item) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text(
+        item.name,
+        style: TextStyle(
+          decoration: TextDecoration.underline,
+          fontWeight: FontWeight.bold,
+          color: app_color,
+          fontSize: 18,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPriceInfo(Item item) {
+    return Expanded(
+      child: Container(
+        height: 60,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Text('Amount'),
+                Text(
+                  '${item.amount}',
+                  style: TextStyle(fontSize: 20.0, color: app_color),
+                ),
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Text('Price'),
+                Text(
+                  '\$${item.price.toStringAsFixed(2)}',
+                  style: TextStyle(
+                      fontSize: 24.0,
+                      color: app_color,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildButtons(Item item) {
+    return Container(
+        padding: EdgeInsets.all(10),
+        child: Row(
+          children: <Widget>[
+            RaisedButton(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0)),
+              child: Text(
+                'SELL IT',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              color: app_color,
+              textColor: Colors.white,
+              onPressed: () => _sellIt(item),
+            ),
+          ],
+        ));
+  }
+
+  void _sellIt(Item item) async {
+    await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) =>
+            NewSaleForm(widget.scaffoldKey, widget.shop, item));
+    setState(() {
+      item.amount = item.amount;
+      if (item.amount == 0) stock.removeAt(stock.indexOf(item));
+    });
+  }
+
+  Widget _buildCategs() {
     return GridView.builder(
         gridDelegate:
             SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
@@ -136,12 +246,12 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
                   parent = cat[index].parent;
                 });
                 _fillCategoriesList(cat[index].key);
-              } else{
+              } else {
                 setState(() {
-                  level = cat[index].level+1;
+                  level = cat[index].level + 1;
                 });
                 _fillStock(cat[index].key);
-                }
+              }
             },
             child: Card(
               child: Column(
@@ -171,7 +281,7 @@ class _CatAlphaGridState extends State<CatAlphaGrid> {
             child: Container(
               padding: EdgeInsets.all(10),
               child: Card(
-                child: subcat ? _buildCats() : _buildStock(),
+                child: subcat ? _buildCategs() : _buildStock(),
               ),
             ),
           ),

@@ -65,7 +65,6 @@ class DbInstance {
     } catch (e) {
       result = e.toString();
     }
-    print('Created record key - $result');
     return result;
   }
 
@@ -78,7 +77,6 @@ class DbInstance {
     } catch (e) {
       result = e.toString();
     }
-    print('Updated record key - $result');
     return result;
   }
 
@@ -91,7 +89,6 @@ class DbInstance {
     } catch (e) {
       result = e.toString();
     }
-    print('Updated record key - $result');
     return result;
   }
 
@@ -106,7 +103,6 @@ class DbInstance {
           .once()
           .then((DataSnapshot snapshot) {
         MapEntry val = snapshot.value.entries.elementAt(0);
-        print(val);
         return User.fromMapEntry(val);
       });
     } catch (e) {
@@ -143,7 +139,6 @@ class DbInstance {
           var val = snapshot.value.entries;
           var lst = new List();
           val.forEach((f) async {
-            print(f.toString());
             lst.add(Category.fromMapEntry(f));
           });
           return lst;
@@ -158,7 +153,6 @@ class DbInstance {
           var val = snapshot.value.entries;
           var lst = new List();
           val.forEach((f) async {
-            print(f.toString());
             lst.add(Category.fromMapEntry(f));
           });
           return lst;
@@ -182,7 +176,6 @@ class DbInstance {
         var val = snapshot.value.entries;
         var lst = new List();
         val.forEach((f) async {
-          print(f.toString());
           lst.add(Category.fromMapEntry(f));
         });
         return lst;
@@ -206,7 +199,6 @@ class DbInstance {
         var val = snapshot.value.entries;
         var lst = new List();
         val.forEach((f) async {
-          print(f.toString());
           lst.add(Item.fromMapEntry(f));
         });
         return lst;
@@ -230,7 +222,6 @@ class DbInstance {
         var val = snapshot.value.entries;
         var lst = new List();
         val.forEach((f) async {
-          print(f.toString());
           lst.add(Item.fromMapEntry(f));
         });
         return lst;
@@ -247,7 +238,7 @@ class DbInstance {
     try {
       item = await reference
           .child('stock')
-          .orderByChild('key')
+          .orderByKey()
           .equalTo(key)
           .once()
           .then((DataSnapshot snapshot) {
@@ -274,7 +265,6 @@ class DbInstance {
         var val = snapshot.value.entries;
         var lst = new List();
         val.forEach((f) async {
-          print(f.toString());
           lst.add(Sale.fromMapEntry(f));
         });
         return lst;

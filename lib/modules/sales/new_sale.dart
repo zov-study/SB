@@ -29,8 +29,6 @@ class _NewSaleFormState extends State<NewSaleForm> {
     var result;
     var item = widget.item;
     if (sale != null && sale.amount > 0 && sale.price > 0) {
-      sale.itemname = item.name;
-      sale.itemimage = item.image;
       result = await db.createRecord('sales', sale.toJson());
       if (result == 'ok') {
         if (item.amount - sale.amount > 0)

@@ -90,7 +90,7 @@ class ItemCard extends StatefulWidget {
 }
 
 class _ItemCardState extends State<ItemCard> {
-  final db = DbInstance();
+  final _db = DbInstance();
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   final FirebaseStorage _storage = new FirebaseStorage();
   TextEditingController _name = TextEditingController();
@@ -270,18 +270,18 @@ class _ItemCardState extends State<ItemCard> {
     Item item = widget.item;
     if (_name.text != null && _name.text != item.name)
       result =
-          await db.updateValue('stock', item.key, "name", _name.text.trim());
+          await _db.updateValue('stock', item.key, "name", _name.text.trim());
     if (_barcode.text != null && _barcode.text != item.barcode)
-      result = await db.updateValue(
+      result = await _db.updateValue(
           'stock', item.key, "barcode", _barcode.text.trim());
     if (_amount != null && _amount != item.amount)
-      result = await db.updateValue('stock', item.key, "amount", _amount);
+      result = await _db.updateValue('stock', item.key, "amount", _amount);
     if (_price != null && _price != item.price)
-      result = await db.updateValue('stock', item.key, "price", _price * 100);
+      result = await _db.updateValue('stock', item.key, "price", _price * 100);
 
     if (_imageFile != null) _image = await _uploadImage(_imageFile, item.key);
     if (_image != item.image)
-      result = await db.updateValue('stock', item.key, "image", _image);
+      result = await _db.updateValue('stock', item.key, "image", _image);
 
     if (result == 'ok') {
       snackbarMessageKey(widget.scaffoldKey,

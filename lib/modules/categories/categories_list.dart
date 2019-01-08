@@ -189,16 +189,17 @@ class _CategoryCardState extends State<CategoryCard> {
   Future<void> _saveIt() async {
     var result = 'ok';
     Category category = widget.category;
-    String image;
     if (_name.text != null && _name.text != category.name)
       result = await db.updateValue(
           'categories', category.key, "name", _name.text.trim());
     if (_imageFile != null)
-      image = await _uploadImage(_imageFile, category.key);
-    if (_image != category.image)
-      result = await db.updateValue('categories', category.key, "image", image);
+      _image = await _uploadImage(_imageFile, category.key);
+    if (_image != category.image){
+      result = await db.updateValue('categories', category.key, "image", _image);
+    }
 
     if (result == 'ok') {
+      _updateVars();
       snackbarMessageKey(widget.scaffoldKey,
           'Category - ${_name.text} updated successfully.', app_color, 3);
     } else {

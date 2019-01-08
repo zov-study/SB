@@ -332,7 +332,8 @@ class _ItemCardState extends State<ItemCard> {
               ? FileImage(_imageFile)
               : NetworkImage(_image),
       fit: BoxFit.contain,
-      width: 130,
+      height: 110,
+      width: 110,
     );
   }
 

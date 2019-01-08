@@ -141,6 +141,7 @@ class _CategAlphaSaleState extends State<CategAlphaSale> {
           ? AssetImage('assets/images/not-available.png')
           : NetworkImage(item.image),
       fit: BoxFit.contain,
+      height: 110,
       width: 110,
     );
   }
@@ -257,9 +258,14 @@ class _CategAlphaSaleState extends State<CategAlphaSale> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
-                  (cat[index].image != null && cat[index].image.isNotEmpty)
-                      ? Image.network(cat[index].image)
-                      : Image.asset('assets/images/not-available.png'),
+                  Expanded(
+                    child: (cat[index].image != null &&
+                            cat[index].image.isNotEmpty)
+                        ? Image.network(
+                            cat[index].image,
+                          )
+                        : Image.asset('assets/images/not-available.png'),
+                  ),
                   Text(
                     cat[index].name,
                     style: TextStyle(

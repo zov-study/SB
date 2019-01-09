@@ -12,6 +12,7 @@ const int ai_choice_duration = 2000;
 enum FormType { login, signin }
 enum AuthStatus { notDetermined, notSignedIn, signedIn }
 enum UserRole { guest, shopAssistant, owner, admin }
+enum ImageMode { None, Asset, Network }
 
 //Main page
 const String main_title = 'Smart Brands';

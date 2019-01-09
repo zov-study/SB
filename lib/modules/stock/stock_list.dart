@@ -1,14 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:oz/database/db_firebase.dart';
 import 'package:oz/helpers/warning_dialog.dart';
+import 'package:oz/helpers/image_tool.dart';
 import 'package:oz/settings/config.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:oz/helpers/snackbar_message.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:oz/modules/stock/item.dart';
@@ -92,7 +91,6 @@ class ItemCard extends StatefulWidget {
 class _ItemCardState extends State<ItemCard> {
   final _db = DbInstance();
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
-  final FirebaseStorage _storage = new FirebaseStorage();
   TextEditingController _name = TextEditingController();
   TextEditingController _barcode = TextEditingController();
   int _amount;
@@ -101,14 +99,12 @@ class _ItemCardState extends State<ItemCard> {
   String _image;
   File _imageFile;
   ImageMode _imageMode = ImageMode.None;
-  StorageReference _ref;
   bool _isEdit = false;
   bool _allowSave = false;
 
   @override
   void initState() {
     super.initState();
-    _ref = _storage.ref();
 
     _name.addListener(_checkToSave);
     _name.text = widget.item.name;
@@ -279,9 +275,13 @@ class _ItemCardState extends State<ItemCard> {
     if (_price != null && _price != item.price)
       result = await _db.updateValue('stock', item.key, "price", _price * 100);
 
-    if (_imageFile != null) _image = await _uploadImage(_imageFile, item.key);
-    if (_image != item.image)
+    if (_imageFile != null) _image = await uploadImage(_imageFile, item.key);
+    if (_image != item.image) {
       result = await _db.updateValue('stock', item.key, "image", _image);
+      setState(() {
+        _imageMode = ImageMode.Network;
+      });
+    }
 
     if (result == 'ok') {
       snackbarMessageKey(widget.scaffoldKey,
@@ -298,19 +298,6 @@ class _ItemCardState extends State<ItemCard> {
       await warningDialog(context, _saveIt,
           content: 'Please, Comfirm to save changes!!!', button: 'Save');
     }
-  }
-
-  Future<String> _uploadImage(File image, String key) async {
-    if (image == null) return null;
-    StorageUploadTask uploadTask =
-        _ref.child('images/$key${p.extension(image.path)}').putFile(image);
-
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    String uploadImageUri = await storageTaskSnapshot.ref.getDownloadURL();
-    setState(() {
-      _imageMode = ImageMode.Network;
-    });
-    return uploadImageUri;
   }
 
   Future<void> _getImage(ImageSource source) async {

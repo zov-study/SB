@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:path/path.dart' as p;
 import 'package:oz/settings/config.dart';
 import 'package:oz/auth/auth_provider.dart';
 import 'package:oz/database/db_firebase.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:oz/helpers/warning_dialog.dart';
 import 'package:oz/helpers/snackbar_message.dart';
+import 'package:oz/helpers/image_tool.dart';
 import 'package:oz/modules/users/user.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -23,14 +22,18 @@ class _UserEditFormState extends State<UserEditForm> {
   final db = DbInstance();
   bool updated = false;
   File _imageFile;
+  ImageMode _imageMode = ImageMode.None;
+
   final User user = new User();
-  final FirebaseStorage _storage = new FirebaseStorage();
-  StorageReference _ref;
   FocusNode _userName = FocusNode();
 
   Future<void> _updateIt() async {
     if (_imageFile != null)
-      user.image = await _uploadImage(_imageFile);
+      user.image = await uploadImage(_imageFile, user.key);
+    if (user.image != null && user.image.isNotEmpty)
+      setState(() {
+        _imageMode = ImageMode.Network;
+      });
     else
       user.image = widget.user.image;
 
@@ -111,24 +114,12 @@ class _UserEditFormState extends State<UserEditForm> {
         button: 'Send');
   }
 
-  Future<String> _uploadImage(File image) async {
-    if (image == null) return null;
-    StorageUploadTask uploadTask = _ref
-        .child('images/${user.uid}${p.extension(image.path)}')
-        .putFile(image);
-
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    String uploadImageUri = await storageTaskSnapshot.ref.getDownloadURL();
-
-    return uploadImageUri;
-  }
-
   Future<void> _getImage(ImageSource source) async {
     var image = await ImagePicker.pickImage(source: source);
     if (image != null) {
       setState(() {
         _imageFile = image;
-        user.image = 'changed';
+        _imageMode = ImageMode.Asset;
       });
       print(user.image);
     }
@@ -145,7 +136,6 @@ class _UserEditFormState extends State<UserEditForm> {
     user.role = widget.user.role;
     user.active = widget.user.active;
     user.date = widget.user.date;
-    _ref = _storage.ref();
   }
 
   @override
@@ -241,9 +231,9 @@ class _UserEditFormState extends State<UserEditForm> {
       decoration: BoxDecoration(
         color: Colors.white,
         image: DecorationImage(
-          image: user.image == null
+          image: _imageMode == ImageMode.None
               ? AssetImage('assets/images/not-available.png')
-              : user.image == 'changed'
+              : _imageMode == ImageMode.Asset
                   ? FileImage(_imageFile)
                   : NetworkImage(user.image),
           fit: BoxFit.contain,

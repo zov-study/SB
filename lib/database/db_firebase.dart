@@ -252,6 +252,28 @@ class DbInstance {
     return item;
   }
 
+  Future<Sale> getSaleByKey(String key) async {
+    if (key == null || key.isEmpty) return null;
+    Sale sale;
+    try {
+      sale = await reference
+          .child('sales')
+          .orderByKey()
+          .equalTo(key)
+          .once()
+          .then((DataSnapshot snapshot) {
+        MapEntry val = snapshot.value.entries.elementAt(0);
+        print(val);
+        return Sale.fromMapEntry(val);
+      });
+    } catch (e) {
+      print(e);
+    }
+    return sale;
+  }
+
+
+
   Future<List> getSalesByDate(String shop, String date) async {
     var result;
     var key = '$shop~$date';

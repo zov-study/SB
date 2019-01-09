@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:path/path.dart' as p;
 import 'package:oz/settings/config.dart';
 import 'package:oz/database/db_firebase.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:oz/helpers/warning_dialog.dart';
 import 'package:oz/helpers/snackbar_message.dart';
 import 'package:oz/helpers/barcode_scaner.dart';
+import 'package:oz/helpers/image_tool.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:oz/modules/stock/item.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-enum ImageMode { None, Asset, Network }
 
 class NewItemForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -27,8 +24,6 @@ class _NewItemFormState extends State<NewItemForm> {
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   final db = DbInstance();
   final Item _item = new Item();
-  final FirebaseStorage _storage = new FirebaseStorage();
-  StorageReference _ref;
   ImageMode _imageMode = ImageMode.None;
   File _imageFile;
   bool _isEditMode = false;
@@ -40,7 +35,13 @@ class _NewItemFormState extends State<NewItemForm> {
 
   Future<void> _saveIt() async {
     var result;
-    if (_imageFile != null) _item.image = await _uploadImage(_imageFile);
+    if (_imageFile != null)
+      _item.image = await uploadImage(_imageFile, _item.key);
+    if (_item.image != null && _item.image.isNotEmpty)
+      setState(() {
+        _imageMode = ImageMode.Network;
+      });
+
     if (_isEditMode) {
       result = await db.updateRecord('stock', _item.key, _item.toJson());
     } else {
@@ -70,24 +71,9 @@ class _NewItemFormState extends State<NewItemForm> {
     }
   }
 
-  Future<String> _uploadImage(File image) async {
-    if (image == null) return null;
-    StorageUploadTask uploadTask = _ref
-        .child('images/${_item.key}${p.extension(image.path)}')
-        .putFile(image);
-
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    String uploadImageUri = await storageTaskSnapshot.ref.getDownloadURL();
-    setState(() {
-      _imageMode = ImageMode.Network;
-    });
-    return uploadImageUri;
-  }
-
   @override
   void initState() {
     super.initState();
-    _ref = _storage.ref();
     _isEditMode = widget.item != null && widget.item.name.isNotEmpty;
     if (_isEditMode) {
       _item.key = widget.item.key;

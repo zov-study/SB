@@ -1,14 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:oz/database/db_firebase.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:oz/modules/categories/new_category.dart';
 import 'package:oz/helpers/warning_dialog.dart';
+import 'package:oz/helpers/image_tool.dart';
 import 'package:oz/settings/config.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:oz/helpers/snackbar_message.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -45,7 +44,7 @@ class _CategoriesListState extends State<CategoriesList> {
   Widget build(BuildContext context) {
     return FirebaseAnimatedList(
         query: _query,
-        sort: (a, b) =>  a.value['name'].compareTo(b.value['name']), 
+        sort: (a, b) => a.value['name'].compareTo(b.value['name']),
         padding: EdgeInsets.all(8.0),
         defaultChild: Center(
           child: CircularProgressIndicator(
@@ -83,12 +82,10 @@ class CategoryCard extends StatefulWidget {
 class _CategoryCardState extends State<CategoryCard> {
   final db = DbInstance();
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
-  final FirebaseStorage _storage = new FirebaseStorage();
   TextEditingController _name = TextEditingController();
   String _image;
   File _imageFile;
   ImageMode _imageMode = ImageMode.None;
-  StorageReference _ref;
   bool _isEdit = false;
   bool _allowSave = false;
   bool _allowDelete = false;
@@ -96,7 +93,6 @@ class _CategoryCardState extends State<CategoryCard> {
   @override
   void initState() {
     super.initState();
-    _ref = _storage.ref();
     _name.addListener(_checkToSave);
     _updateVars();
   }
@@ -193,9 +189,13 @@ class _CategoryCardState extends State<CategoryCard> {
       result = await db.updateValue(
           'categories', category.key, "name", _name.text.trim());
     if (_imageFile != null)
-      _image = await _uploadImage(_imageFile, category.key);
-    if (_image != category.image){
-      result = await db.updateValue('categories', category.key, "image", _image);
+      _image = await uploadImage(_imageFile, category.key);
+    if (_image != category.image) {
+      result =
+          await db.updateValue('categories', category.key, "image", _image);
+      setState(() {
+        _imageMode = ImageMode.Network;
+      });
     }
 
     if (result == 'ok') {
@@ -214,19 +214,6 @@ class _CategoryCardState extends State<CategoryCard> {
       await warningDialog(context, _saveIt,
           content: 'Please, Comfirm to save changes!!!', button: 'Save');
     }
-  }
-
-  Future<String> _uploadImage(File image, String key) async {
-    if (image == null) return null;
-    StorageUploadTask uploadTask =
-        _ref.child('images/$key${p.extension(image.path)}').putFile(image);
-
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    String uploadImageUri = await storageTaskSnapshot.ref.getDownloadURL();
-    setState(() {
-      _imageMode = ImageMode.Network;
-    });
-    return uploadImageUri;
   }
 
   Future<void> _getImage(ImageSource source) async {
@@ -311,7 +298,9 @@ class _CategoryCardState extends State<CategoryCard> {
 
   void _confirmToRemove() async {
     await warningDialog(context, _removeIt,
-        content: 'Please, Comfirm the category "${widget.category.name}" - should be removed!!!', button: 'Remove');
+        content:
+            'Please, Comfirm the category "${widget.category.name}" - should be removed!!!',
+        button: 'Remove');
   }
 
   void _newSubCategory(Category category) async {
@@ -378,6 +367,6 @@ void showSubCatOrItem(BuildContext context, Category category) {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                StockPage(title: '${category.name} - STOCK', category: category)));
+            builder: (context) => StockPage(
+                title: '${category.name} - STOCK', category: category)));
 }

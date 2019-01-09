@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:path/path.dart' as p;
 import 'package:oz/settings/config.dart';
 import 'package:oz/auth/auth_provider.dart';
 import 'package:oz/database/db_firebase.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:oz/helpers/warning_dialog.dart';
 import 'package:oz/helpers/snackbar_message.dart';
+import 'package:oz/helpers/image_tool.dart';
 import 'package:oz/modules/shops/shop.dart';
 import 'package:oz/helpers/form_validation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-enum ImageMode { None, Asset, Network }
 
 class NewShopForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -24,8 +22,6 @@ class _NewShopFormState extends State<NewShopForm> {
   final GlobalKey<FormState> formkey = GlobalKey<FormState>();
   final db = DbInstance();
   final Shop shop = new Shop();
-  final FirebaseStorage _storage = new FirebaseStorage();
-  StorageReference _ref;
   ImageMode _imageMode = ImageMode.None;
   File _imageFile;
 
@@ -37,7 +33,13 @@ class _NewShopFormState extends State<NewShopForm> {
 
   Future<void> _saveIt() async {
     var result;
-    if (_imageFile != null) shop.image = await _uploadImage(_imageFile);
+    if (_imageFile != null)
+      shop.image = await uploadImage(_imageFile, shop.key);
+    if (shop.image != null && shop.image.isNotEmpty)
+      setState(() {
+        _imageMode = ImageMode.Network;
+      });
+
     result = await db.createRecord('shops', shop.toJson());
     if (result != null) {
       snackbarMessageKey(widget.scaffoldKey,
@@ -72,24 +74,9 @@ class _NewShopFormState extends State<NewShopForm> {
     }
   }
 
-  Future<String> _uploadImage(File image) async {
-    if (image == null) return null;
-    StorageUploadTask uploadTask = _ref
-        .child('images/${shop.key}${p.extension(image.path)}')
-        .putFile(image);
-
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    String uploadImageUri = await storageTaskSnapshot.ref.getDownloadURL();
-    setState(() {
-      _imageMode = ImageMode.Network;
-    });
-    return uploadImageUri;
-  }
-
   @override
   void initState() {
     super.initState();
-    _ref = _storage.ref();
   }
 
   @override

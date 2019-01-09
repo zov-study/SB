@@ -30,6 +30,7 @@ class _ShopsPageState extends State<ShopsPage> {
     db.reference.child('shops').onChildChanged.listen(_shopChanged);
   }
 
+
   void _shopAdded(Event event) {
     setState(() {
       shops.add(Shop.fromSnapshot(event.snapshot));

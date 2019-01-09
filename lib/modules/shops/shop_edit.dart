@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p;
 import 'package:oz/settings/config.dart';
 import 'package:oz/auth/auth_provider.dart';
 import 'package:oz/database/db_firebase.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:oz/helpers/warning_dialog.dart';
 import 'package:oz/helpers/snackbar_message.dart';
+import 'package:oz/helpers/image_tool.dart';
 import 'package:oz/modules/shops/shop.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
@@ -33,11 +32,9 @@ class _ShopEditFormState extends State<ShopEditForm> {
   bool updated = false;
   bool _isEditMode = false;
   final Shop shop = new Shop();
-  final FirebaseStorage _storage = new FirebaseStorage();
   File _imageFile;
   ImageMode _imageMode = ImageMode.None;
 
-  StorageReference _ref;
   FocusNode _shopName = FocusNode();
   FocusNode _shopLocation = FocusNode();
   FocusNode _shopContactName = FocusNode();
@@ -45,7 +42,11 @@ class _ShopEditFormState extends State<ShopEditForm> {
 
   Future<void> _updateIt() async {
     if (_imageFile != null)
-      shop.image = await _uploadImage(_imageFile);
+      shop.image = await uploadImage(_imageFile, shop.key);
+    if (shop.image != null && shop.image.isNotEmpty)
+      setState(() {
+        _imageMode = ImageMode.Network;
+      });
     else
       shop.image = widget.shop.image;
 
@@ -72,7 +73,6 @@ class _ShopEditFormState extends State<ShopEditForm> {
   }
 
   DateTime _convertToDate(String input) {
-    print(input);
     try {
       var d = DateTime.parse(input);
       print(d);
@@ -113,20 +113,6 @@ class _ShopEditFormState extends State<ShopEditForm> {
     }
   }
 
-  Future<String> _uploadImage(File image) async {
-    if (image == null) return null;
-    StorageUploadTask uploadTask = _ref
-        .child('images/${shop.key}${p.extension(image.path)}')
-        .putFile(image);
-
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    String uploadImageUri = await storageTaskSnapshot.ref.getDownloadURL();
-    setState(() {
-      _imageMode = ImageMode.Network;
-    });
-    return uploadImageUri;
-  }
-
   Future<void> _getImage(ImageSource source) async {
     var image = await ImagePicker.pickImage(source: source);
     if (image != null) {
@@ -163,8 +149,6 @@ class _ShopEditFormState extends State<ShopEditForm> {
       _openTime.text = hours[0];
       _closeTime.text = hours[1];
     }
-
-    _ref = _storage.ref();
   }
 
   @override

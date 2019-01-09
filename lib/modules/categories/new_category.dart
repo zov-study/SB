@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:path/path.dart' as p;
 import 'package:oz/settings/config.dart';
 import 'package:oz/database/db_firebase.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:oz/helpers/warning_dialog.dart';
 import 'package:oz/helpers/snackbar_message.dart';
+import 'package:oz/helpers/image_tool.dart';
 import 'package:oz/modules/categories/category.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-enum ImageMode { None, Asset, Network }
 
 class NewCategoryForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -24,8 +22,6 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
   final GlobalKey<FormState> formkey = GlobalKey<FormState>();
   final db = DbInstance();
   final Category category = new Category();
-  final FirebaseStorage _storage = new FirebaseStorage();
-  StorageReference _ref;
   ImageMode _imageMode = ImageMode.None;
   File _imageFile;
 
@@ -42,7 +38,13 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
       category.level = parent.level + 1;
       category.parent = parent.key;
     }
-    if (_imageFile != null) category.image = await _uploadImage(_imageFile);
+    if (_imageFile != null)
+      category.image = await uploadImage(_imageFile, category.key);
+    if (category.image != null && category.image.isNotEmpty)
+      setState(() {
+        _imageMode = ImageMode.Network;
+      });
+
     result = await db.createRecord('categories', category.toJson());
     if (result == 'ok') {
       snackbarMessageKey(widget.scaffoldKey,
@@ -63,24 +65,9 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
     }
   }
 
-  Future<String> _uploadImage(File image) async {
-    if (image == null) return null;
-    StorageUploadTask uploadTask = _ref
-        .child('images/${category.key}${p.extension(image.path)}')
-        .putFile(image);
-
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    String uploadImageUri = await storageTaskSnapshot.ref.getDownloadURL();
-    setState(() {
-      _imageMode = ImageMode.Network;
-    });
-    return uploadImageUri;
-  }
-
   @override
   void initState() {
     super.initState();
-    _ref = _storage.ref();
   }
 
   @override

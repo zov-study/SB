@@ -20,55 +20,58 @@ class CategAlphaSale extends StatefulWidget {
 
 class _CategAlphaSaleState extends State<CategAlphaSale> {
   Toggle _toggleMode = Toggle.category;
-  final db = DbInstance();
-  List cat = new List();
-  List stock = new List();
-  String parent;
-  int level = 0;
-  bool subcat;
+  final _db = DbInstance();
+  List _categ = new List();
+  List _stock = new List();
+  String _parent;
+  int _level = 0;
+  bool _subcat;
+  int _countStock = -1;
 
   @override
   void initState() {
     super.initState();
-    subcat = true;
+    _subcat = true;
     _fillCategoriesList();
   }
 
   void _fillCategoriesList([String parentkey]) async {
-    print(this.parent);
-    var lst = await db.getCategoryList(parentkey);
+    var lst = await _db.getCategoryList(parentkey);
     if (lst != null && lst.isNotEmpty) {
       lst.sort((a, b) => a.name.compareTo(b.name));
       setState(() {
-        cat = lst;
-        subcat = true;
-        level = lst[0].level;
+        _categ = lst;
+        _subcat = true;
+        _level = lst[0].level;
       });
     } else {
       setState(() {
-        cat = new List();
-        subcat = false;
-        level = 0;
-        parent = null;
+        _categ = new List();
+        _subcat = false;
+        _level = 0;
+        _parent = null;
       });
     }
   }
 
   void _fillStock([String parentkey]) async {
-    print(this.parent);
     setState(() {
-      stock = new List();
+      _countStock = -1;
+      _stock = new List();
     });
-    var lst = await db.getItemsByKey(parentkey);
+    var lst = await _db.getItemsByKey(parentkey);
+    var stock = new List();
     if (lst != null && lst.isNotEmpty) {
       lst.sort((a, b) => a.name.compareTo(b.name));
-      setState(() {
-        lst.forEach((f) {
-          if (f.amount > 0) stock.add(f);
-        });
-        subcat = false;
+      lst.forEach((f) {
+        if (f.amount > 0) stock.add(f);
       });
     }
+    setState(() {
+      _stock = stock;
+      _countStock = _stock.length;
+      _subcat = false;
+    });
   }
 
   Widget _buildToggleButtons() {
@@ -107,16 +110,22 @@ class _CategAlphaSaleState extends State<CategAlphaSale> {
   }
 
   Widget _buildStock() {
-    return stock.length > 0
-        ? ListView.builder(
-            itemCount: stock.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Card(
-                child: _buildStockCard(stock[index]),
-                color: index % 2 == 0 ? Colors.white : Colors.grey[50],
-              );
-            })
-        : notFound();
+    return _countStock < 0
+        ? Center(
+            child: CircularProgressIndicator(
+              backgroundColor: app_color,
+            ),
+          )
+        : _countStock > 0
+            ? ListView.builder(
+                itemCount: _countStock,
+                itemBuilder: (BuildContext context, int index) {
+                  return Card(
+                    child: _buildStockCard(_stock[index]),
+                    color: index % 2 == 0 ? Colors.white : Colors.grey[50],
+                  );
+                })
+            : notFound();
   }
 
   Widget _buildStockCard(Item item) {
@@ -225,7 +234,7 @@ class _CategAlphaSaleState extends State<CategAlphaSale> {
             NewSaleForm(widget.scaffoldKey, widget.shop, item));
     setState(() {
       item.amount = item.amount;
-      if (item.amount == 0) stock.removeAt(stock.indexOf(item));
+      if (item.amount == 0) _stock.removeAt(_stock.indexOf(item));
     });
   }
 
@@ -235,43 +244,46 @@ class _CategAlphaSaleState extends State<CategAlphaSale> {
             SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
         padding: EdgeInsets.all(5),
         primary: true,
-        itemCount: cat.length,
+        itemCount: _categ.length,
         itemBuilder: (BuildContext context, int index) {
           return GestureDetector(
             onTap: () {
               setState(() {
-                subcat = cat[index].subcategory ?? false;
+                _subcat = _categ[index].subcategory ?? false;
               });
-              if (subcat) {
+              if (_subcat) {
                 setState(() {
-                  parent = cat[index].parent;
+                  _parent = _categ[index].parent;
                 });
-                _fillCategoriesList(cat[index].key);
+                _fillCategoriesList(_categ[index].key);
               } else {
                 setState(() {
-                  level = cat[index].level + 1;
+                  _level = _categ[index].level + 1;
                 });
-                _fillStock(cat[index].key);
+                _fillStock(_categ[index].key);
               }
             },
             child: Card(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  Expanded(
-                    child: (cat[index].image != null &&
-                            cat[index].image.isNotEmpty)
-                        ? Image.network(
-                            cat[index].image,
-                          )
-                        : Image.asset('assets/images/not-available.png'),
-                  ),
-                  Text(
-                    cat[index].name,
-                    style: TextStyle(
-                        color: app_color, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              child: Container(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    Expanded(
+                      child: (_categ[index].image != null &&
+                              _categ[index].image.isNotEmpty)
+                          ? Image.network(
+                              _categ[index].image,
+                            )
+                          : Image.asset('assets/images/not-available.png'),
+                    ),
+                    Text(
+                      _categ[index].name,
+                      style: TextStyle(
+                          color: app_color, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -287,17 +299,17 @@ class _CategAlphaSaleState extends State<CategAlphaSale> {
             child: Container(
               padding: EdgeInsets.all(10),
               child: Card(
-                child: subcat ? _buildCategs() : _buildStock(),
+                child: _subcat ? _buildCategs() : _buildStock(),
               ),
             ),
           ),
-          level > 0
+          _level > 0
               ? Container(
                   padding: EdgeInsets.all(10),
                   child: FloatingActionButton(
                     child: Icon(Icons.arrow_back),
                     onPressed: () =>
-                        _fillCategoriesList(level < 2 ? null : parent),
+                        _fillCategoriesList(_level < 2 ? null : _parent),
                     backgroundColor: app_color,
                   ),
                 )

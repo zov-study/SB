@@ -193,9 +193,6 @@ class _CategoryCardState extends State<CategoryCard> {
     if (_image != category.image) {
       result =
           await db.updateValue('categories', category.key, "image", _image);
-      setState(() {
-        _imageMode = ImageMode.Network;
-      });
     }
 
     if (result == 'ok') {

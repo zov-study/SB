@@ -30,7 +30,6 @@ class _ShopsPageState extends State<ShopsPage> {
     db.reference.child('shops').onChildChanged.listen(_shopChanged);
   }
 
-
   void _shopAdded(Event event) {
     setState(() {
       shops.add(Shop.fromSnapshot(event.snapshot));
@@ -88,7 +87,11 @@ class _ShopsPageState extends State<ShopsPage> {
     found = 0;
     setState(() {
       for (int i = 0; i < shops.length; i++) {
-        filtered[i] = shops[i].name.toLowerCase().contains(value);
+        filtered[i] = shops[i]
+            .name
+            .toLowerCase()
+            .trim()
+            .contains(value.trim().toLowerCase());
         if (filtered[i]) found++;
       }
       if (found > 0)

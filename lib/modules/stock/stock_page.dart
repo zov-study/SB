@@ -134,6 +134,9 @@ class _StockPageState extends State<StockPage> {
         barrierDismissible: false,
         builder: (BuildContext context) =>
             NewItemForm(_scaffoldKey, 'New Item', widget.category));
+    setState(() {
+      stock = stock;
+    });
   }
 
   @override

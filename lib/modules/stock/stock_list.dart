@@ -63,7 +63,7 @@ class _StockListState extends State<StockList> {
         ),
         itemBuilder: (BuildContext context, DataSnapshot snapshot,
             Animation<double> animation, int index) {
-          if (widget.filtered[index]) {
+          if (index<widget.filtered.length && widget.filtered[index]) {
             return GestureDetector(
               onDoubleTap: () {
                 _editItem(widget.stock[index]);

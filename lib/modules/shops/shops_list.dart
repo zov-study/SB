@@ -3,7 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:oz/database/db_firebase.dart';
 import 'package:oz/modules/shops/shop.dart';
-import 'package:oz/modules/tabs/shop_tabs.dart';
+import 'package:oz/modules/shops/shop_tabs.dart';
 import 'package:oz/auth/auth_provider.dart';
 import 'package:oz/helpers/warning_dialog.dart';
 import 'package:oz/settings/config.dart';

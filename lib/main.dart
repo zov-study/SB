@@ -20,7 +20,6 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           title: app_title,
           theme: ThemeData(primarySwatch: app_theme_color),
-          // home: RootPage(),
           initialRoute: '/',
           routes: Routes(context).getRoutes(),
           localizationsDelegates: [

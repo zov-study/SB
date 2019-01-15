@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oz/database/db_firebase.dart';
-// import 'package:flutter_search_bar/flutter_search_bar.dart';
 import 'package:oz/settings/config.dart';
-// import 'package:firebase_database/firebase_database.dart';
-// import 'package:oz/helpers/snackbar_message.dart';
 import 'package:oz/helpers/not_found.dart';
 import 'package:oz/modules/shops/shop.dart';
 import 'package:oz/modules/stock/item.dart';

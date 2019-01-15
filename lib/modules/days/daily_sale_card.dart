@@ -36,7 +36,6 @@ class _DailySaleCardState extends State<DailySaleCard> {
   Widget _buildSaleCard() {
     return Container(
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        // _buildImage(),
         _buildSaleTime(),
         SizedBox(
           width: 10.0,
@@ -65,16 +64,7 @@ class _DailySaleCardState extends State<DailySaleCard> {
     );
   }
 
-  // Widget _buildImage() {
-  //   return Image(
-  //     image: _item.image == null || _item.image.isEmpty
-  //         ? AssetImage('assets/images/not-available.png')
-  //         : NetworkImage(_item.image),
-  //     fit: BoxFit.contain,
-  //     width: 110,
-  //   );
-  // }
-
+  
   Widget _buildTitle() {
     return Container(
       alignment: Alignment.center,

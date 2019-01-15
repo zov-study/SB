@@ -41,14 +41,6 @@ class _StockListState extends State<StockList> {
           .equalTo(widget.category.key);
   }
 
-  void _editItem(Item item) async {
-    await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) =>
-            NewItemForm(widget.scaffoldKey, 'New Item', widget.category, item));
-  }
-
   @override
   Widget build(BuildContext context) {
     return FirebaseAnimatedList(
@@ -76,6 +68,14 @@ class _StockListState extends State<StockList> {
             return Container();
           }
         });
+  }
+
+  void _editItem(Item item) async {
+    await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) =>
+            NewItemForm(widget.scaffoldKey, 'New Item', widget.category, item));
   }
 }
 

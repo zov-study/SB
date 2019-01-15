@@ -174,15 +174,6 @@ class _DailySalesState extends State<DailySales> {
             : notFound('SORRY, NO SALES THIS DAY!');
   }
 
-  DateTime _convertToDate(String input) {
-    try {
-      var d = DateTime.parse(input);
-      return d;
-    } catch (e) {
-      print(e.toString());
-      return null;
-    }
-  }
 
   Widget _buildDailySales() {
     return Container(
@@ -260,6 +251,17 @@ class _DailySalesState extends State<DailySales> {
     else
       _updateIt();
   }
+
+  DateTime _convertToDate(String input) {
+    try {
+      var d = DateTime.parse(input);
+      return d;
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {

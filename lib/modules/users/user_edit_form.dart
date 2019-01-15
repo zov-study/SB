@@ -136,6 +136,8 @@ class _UserEditFormState extends State<UserEditForm> {
     user.role = widget.user.role;
     user.active = widget.user.active;
     user.date = widget.user.date;
+    if (user.image != null && user.image.isNotEmpty)
+      _imageMode = ImageMode.Network;
   }
 
   @override
@@ -230,6 +232,7 @@ class _UserEditFormState extends State<UserEditForm> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Colors.white,
+        shape: BoxShape.circle,
         image: DecorationImage(
           image: _imageMode == ImageMode.None
               ? AssetImage('assets/images/not-available.png')

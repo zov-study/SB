@@ -11,7 +11,7 @@ List<Widget> drawerHeader(BuildContext context) {
       await auth.signOut();
       Navigator.of(context).pushNamed('/');
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
   }
 

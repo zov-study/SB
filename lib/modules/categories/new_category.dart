@@ -9,7 +9,6 @@ import 'package:oz/modules/categories/category.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-
 class NewCategoryForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   final Category parent;
@@ -133,10 +132,7 @@ class _NewCategoryFormState extends State<NewCategoryForm> {
         ),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        onPressed: (() {
-          print('${_imageFile == null ? null : _imageFile.path}');
-          Navigator.of(context).pop();
-        }),
+        onPressed: (() => Navigator.of(context).pop()),
       ),
       RaisedButton(
         color: app_color,

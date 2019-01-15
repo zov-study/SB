@@ -16,7 +16,6 @@ Future<List> getCustomerList(String searchString) async{
       .sortBy('date', descending: true)
       .fields(['name','district','phone','email','date']))
       .toList();
-  print(customersList[0]['date'].millisecondsSinceEpoch);
   await db.close();
 
   return customersList;

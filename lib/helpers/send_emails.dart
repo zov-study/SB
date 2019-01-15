@@ -9,7 +9,6 @@ Future<String> sendEmail(String from, List<String> bcc, String subject, String b
       body: body,
       subject: subject,
       recipients: bcc,
-      // attachmentPath: attachment,
     );
 
     String platformResponse;

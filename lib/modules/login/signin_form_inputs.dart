@@ -9,7 +9,6 @@ List<Widget> signInInputs(Map<String, dynamic> user, BuildContext context) {
   FocusNode _userEmail = FocusNode();
   FocusNode _userPass = FocusNode();
   FocusNode _userConf = FocusNode();
-  print("!!! $user");
   return [
     TextFormField(
         decoration: InputDecoration(
@@ -66,7 +65,6 @@ List<Widget> signInInputs(Map<String, dynamic> user, BuildContext context) {
       obscureText: true,
       focusNode: _userConf,
       validator: (value) {
-        print('Confirm:$value, Password:$pass}');
         return value != pass ? 'Passwords is not equial' : null;
       },
       textInputAction: TextInputAction.done,

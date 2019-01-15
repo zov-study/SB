@@ -43,7 +43,6 @@ class _CustomersListState extends State<CustomersList> {
     await warningDialog(context, _setUndo,
         content: 'You dismissed - ${customer.name}, UNDO?', button: 'UNDO');
     if (undo) {
-      print('Dismised $undo');
       setState(() {
         widget.customers.insert(index, customer);
       });

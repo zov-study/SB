@@ -89,12 +89,10 @@ class _EmailFormState extends State<EmailForm> {
   void bottomTapped(int button) {
     switch (button) {
       case 0:
-        print('Prev');
         _lastIndex = _startIndex;
         _startIndex = _startIndex - _step <= 0 ? 0 : _startIndex - _step;
         break;
       case 1:
-        print('Next');
         _startIndex = _lastIndex;
         _lastIndex = _lastIndex + _step >= widget.emailAddresses.length
             ? widget.emailAddresses.length

@@ -80,12 +80,10 @@ class _SmsFormState extends State<SmsForm> {
   void bottomTapped(int button) {
     switch (button) {
       case 0:
-        print('Prev');
         _lastIndex = _startIndex;
         _startIndex = _startIndex - _step <= 0 ? 0 : _startIndex - _step;
         break;
       case 1:
-        print('Next');
         _startIndex = _lastIndex;
         _lastIndex = _lastIndex + _step >= widget.smsPhones.length
             ? widget.smsPhones.length

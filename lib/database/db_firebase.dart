@@ -106,7 +106,7 @@ class DbInstance {
         return User.fromMapEntry(val);
       });
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
 
     return user;
@@ -158,7 +158,7 @@ class DbInstance {
           return lst;
         });
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
     return result;
   }
@@ -181,7 +181,7 @@ class DbInstance {
         return lst;
       });
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
     return result;
   }
@@ -204,7 +204,7 @@ class DbInstance {
         return lst;
       });
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
     return result;
   }
@@ -227,7 +227,7 @@ class DbInstance {
         return lst;
       });
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
     return result;
   }
@@ -243,11 +243,10 @@ class DbInstance {
           .once()
           .then((DataSnapshot snapshot) {
         MapEntry val = snapshot.value.entries.elementAt(0);
-        print(val);
         return Item.fromMapEntry(val);
       });
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
     return item;
   }
@@ -263,16 +262,13 @@ class DbInstance {
           .once()
           .then((DataSnapshot snapshot) {
         MapEntry val = snapshot.value.entries.elementAt(0);
-        print(val);
         return Sale.fromMapEntry(val);
       });
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
     return sale;
   }
-
-
 
   Future<List> getSalesByDate(String shop, String date) async {
     var result;
@@ -292,7 +288,7 @@ class DbInstance {
         return lst;
       });
     } catch (e) {
-      print(e);
+       print(e.toString());
     }
     return result;
   }

@@ -119,7 +119,6 @@ class _ConvertClientsPageState extends State<ConvertClientsPage> {
   void bottomTapped(int button) {
     switch (button) {
       case 0:
-        print('Transfer');
         if (countChecked > 0)
           warningDialog(context, transferIT,
               button: 'Migrate',

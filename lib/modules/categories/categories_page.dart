@@ -102,7 +102,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 
   void onSubmitted(String value) {
-    print(value);
     found = 0;
     setState(() {
       for (int i = 0; i < categories.length; i++) {

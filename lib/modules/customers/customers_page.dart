@@ -104,7 +104,6 @@ class _CustomersPageState extends State<CustomersPage> {
   }
 
   void onSubmitted(String value) {
-    print(value);
     found = 0;
     setState(() {
       for (int i = 0; i < customers.length; i++) {
@@ -176,7 +175,6 @@ class _CustomersPageState extends State<CustomersPage> {
   void bottomTapped(int button) {
     switch (button) {
       case 0:
-        print('Send Email');
         List emails = new List();
         for (int i = 0; i < this.checkedClient.length; i++)
           if (this.checkedClient[i] && this.filtered[i])
@@ -193,7 +191,6 @@ class _CustomersPageState extends State<CustomersPage> {
         }
         break;
       case 1:
-        print('Send SMS');
         List phones = new List();
         for (int i = 0; i < this.checkedClient.length; i++)
           if (this.checkedClient[i] && this.filtered[i])
@@ -210,7 +207,6 @@ class _CustomersPageState extends State<CustomersPage> {
         }
         break;
       case 2:
-        // print('Select All');
         setState(() {
           this.isSelectedAll = !this.isSelectedAll;
           for (int i = 0; i < this.checkedClient.length; i++)

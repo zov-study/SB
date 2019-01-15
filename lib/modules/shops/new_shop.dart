@@ -11,7 +11,6 @@ import 'package:oz/helpers/form_validation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-
 class NewShopForm extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   NewShopForm(this.scaffoldKey);
@@ -216,10 +215,7 @@ class _NewShopFormState extends State<NewShopForm> {
         ),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        onPressed: (() {
-          print('${_imageFile == null ? null : _imageFile.path}');
-          Navigator.of(context).pop();
-        }),
+        onPressed: (() => Navigator.of(context).pop()),
       ),
       RaisedButton(
         color: app_color,
@@ -238,13 +234,11 @@ class _NewShopFormState extends State<NewShopForm> {
 
   Future<void> _getImage(ImageSource source) async {
     var image = await ImagePicker.pickImage(source: source);
-    if (image != null) {
+    if (image != null)
       setState(() {
         _imageFile = image;
         _imageMode = ImageMode.Asset;
       });
-      print(shop.image);
-    }
   }
 
   Widget _buildImage() {

@@ -8,8 +8,6 @@ import 'package:oz/settings/config.dart';
 import 'terms_agreement.dart';
 
 class SubscribeForm extends StatefulWidget {
-  // final GlobalKey<ScaffoldState> _scaffoldKey;
-  // SubscribeForm(this._scaffoldKey);
   @override
   _SubscribeFormState createState() => _SubscribeFormState();
 }
@@ -33,7 +31,6 @@ class _SubscribeFormState extends State<SubscribeForm> {
   }
 
   void callBack() {
-    print('Tapped Aggreement');
     Navigator.of(context).pop();
     setState(() {
       _termsChecked = true;
@@ -47,7 +44,7 @@ class _SubscribeFormState extends State<SubscribeForm> {
         form.save();
         if (customer.byEmail || customer.bySMS) {
           var auth = AuthProvider.of(context).auth;
-          var customerKey = await db.createRecord('customers', {
+          var result = await db.createRecord('customers', {
             'name': customer.name,
             'email': customer.email,
             'phone': customer.phone,
@@ -58,9 +55,9 @@ class _SubscribeFormState extends State<SubscribeForm> {
             'userUid': auth.uid,
             'date': DateTime.now().millisecondsSinceEpoch
           });
-          print('Record key is $customerKey');
-          snackbarMessage(context,
-              "Thank you ${customer.name}, you've subscribed!", app_color, 3);
+          if (result == 'ok')
+            snackbarMessage(context,
+                "Thank you ${customer.name}, you've subscribed!", app_color, 3);
           form.reset();
           customer.byEmail = true;
           customer.bySMS = true;

@@ -83,7 +83,6 @@ class _ShopsPageState extends State<ShopsPage> {
   }
 
   void onSubmitted(String value) {
-    print(value);
     found = 0;
     setState(() {
       for (int i = 0; i < shops.length; i++) {

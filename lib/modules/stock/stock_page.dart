@@ -104,7 +104,6 @@ class _StockPageState extends State<StockPage> {
   }
 
   void onSubmitted(String value, [bool isBarcode = false]) {
-    print(value);
     found = 0;
     setState(() {
       for (int i = 0; i < stock.length; i++) {

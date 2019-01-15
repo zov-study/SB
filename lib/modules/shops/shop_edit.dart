@@ -75,7 +75,6 @@ class _ShopEditFormState extends State<ShopEditForm> {
   DateTime _convertToDate(String input) {
     try {
       var d = DateTime.parse(input);
-      print(d);
       return d;
     } catch (e) {
       print(e.toString());
@@ -115,13 +114,11 @@ class _ShopEditFormState extends State<ShopEditForm> {
 
   Future<void> _getImage(ImageSource source) async {
     var image = await ImagePicker.pickImage(source: source);
-    if (image != null) {
+    if (image != null)
       setState(() {
         _imageFile = image;
         _imageMode = ImageMode.Asset;
       });
-      print(shop.image);
-    }
   }
 
   @override

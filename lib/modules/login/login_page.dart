@@ -29,12 +29,9 @@ class LoginPageState extends State<LoginPage> {
     final form = formKey.currentState;
     if (form.validate()) {
       form.save();
-      print('Login: $_user');
       return true;
-    } else {
-      print("The form isn't validated!!!");
+    } else
       return false;
-    }
   }
 
   void _checkFirebaseLogin(BuildContext context) async {
@@ -44,14 +41,12 @@ class LoginPageState extends State<LoginPage> {
         if (_formType == FormType.login) {
           await auth.signInWithEmailAndPassword(
               email: _user['email'], pass: _user['password']);
-          print('Signed with ${auth.uid} is active ${auth.active}');
         } else {
           await auth.createUserWithEmailAndPassword(
               userName: _user['name'],
               email: _user['email'],
               pass: _user['password'],
               userRole: _user['role']);
-          print('Sign in new ${auth.uid}');
           formKey.currentState.reset();
           setState(() {
             _formType = FormType.login;
@@ -80,7 +75,6 @@ class LoginPageState extends State<LoginPage> {
         }
       } catch (e) {
         var mess = e.toString().split(',');
-        // print(mess[1]);
         snackbarMessageKey(_scfKey, mess[1], snackbar_color, snackbar_delay);
       }
     }
@@ -204,7 +198,7 @@ class LoginPageState extends State<LoginPage> {
                   child: Text(
                     'Create an account',
                   ),
-                   width: 200.0,
+                  width: 200.0,
                 ),
                 color: app_color,
                 shape: RoundedRectangleBorder(

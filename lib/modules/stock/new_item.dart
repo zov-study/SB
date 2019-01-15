@@ -244,10 +244,7 @@ class _NewItemFormState extends State<NewItemForm> {
         ),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        onPressed: (() {
-          print('${_imageFile == null ? null : _imageFile.path}');
-          Navigator.of(context).pop();
-        }),
+        onPressed: (() => Navigator.of(context).pop()),
       ),
       RaisedButton(
         color: app_color,

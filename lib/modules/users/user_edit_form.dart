@@ -105,7 +105,6 @@ class _UserEditFormState extends State<UserEditForm> {
     auth.requestChangePassword(user.email);
     warningDialog(context, null,
         content: 'Check the email to change password!', title: 'INFO');
-    print('Change Password requested!!!');
   }
 
   void _requestToChangePassword() async {
@@ -116,13 +115,11 @@ class _UserEditFormState extends State<UserEditForm> {
 
   Future<void> _getImage(ImageSource source) async {
     var image = await ImagePicker.pickImage(source: source);
-    if (image != null) {
+    if (image != null)
       setState(() {
         _imageFile = image;
         _imageMode = ImageMode.Asset;
       });
-      print(user.image);
-    }
   }
 
   @override

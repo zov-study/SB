@@ -77,7 +77,6 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   void onSubmitted(String value) {
-    print(value);
     found = 0;
     setState(() {
       for (int i = 0; i < users.length; i++) {

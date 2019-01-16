@@ -214,7 +214,7 @@ class _NewSaleFormState extends State<NewSaleForm> {
       RaisedButton(
         color: app_color,
         child: Text(
-          'SELL',
+          'SOLD',
           style: TextStyle(color: Colors.white, fontSize: 18.0),
         ),
         shape:
